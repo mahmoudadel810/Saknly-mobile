@@ -1,12 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, Text, View } from 'react-native';
 
+import { useAuth } from '@/auth/AuthProvider';
+import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
 import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyView, ErrorView, LoadingView } from '@/components/StateViews';
+import { TextField } from '@/components/TextField';
+import { FavoriteButton } from '@/features/account/FavoriteButton';
+import { useAddComment } from '@/features/account/queries';
+import { COMMENT_MAX } from '@/features/account/schemas';
 import { callUrl, mapsUrl, whatsAppUrl } from '@/features/properties/contact';
 import { categoryLabel, formatPrice, placeLabel, statusLabel } from '@/features/properties/format';
 import { Gallery } from '@/features/properties/Gallery';
@@ -17,6 +24,7 @@ import {
   useSimilarProperties,
 } from '@/features/properties/queries';
 import { useThemeColors } from '@/theme/colors';
+import { describeError } from '@/utils/errors';
 import { openLink } from '@/utils/openLink';
 
 export default function PropertyScreen() {
@@ -37,10 +45,17 @@ export default function PropertyScreen() {
   const whatsapp = p.contactInfo?.whatsapp || p.contactInfo?.phone;
   const whatsappLink = whatsapp ? whatsAppUrl(whatsapp) : null;
   const ownerName = typeof p.owner === 'object' ? p.owner?.userName : undefined;
+  const isPublic = p.isApproved !== false && p.isActive !== false;
 
   return (
     <ScrollView contentContainerClassName="gap-6 pb-10">
-      <Stack.Screen options={{ title: p.title }} />
+      <Stack.Screen
+        options={{
+          title: p.title,
+          // Hearts, inquiries and comments are for published listings (an owner can open a pending one).
+          headerRight: isPublic ? () => <FavoriteButton property={p} /> : undefined,
+        }}
+      />
       <Gallery images={p.images} />
 
       <View className="gap-2 px-5">
@@ -116,6 +131,13 @@ export default function PropertyScreen() {
               </View>
             ) : null}
           </View>
+          {isPublic ? (
+            <Button
+              title={t('inquiry.open')}
+              variant="secondary"
+              onPress={() => router.push({ pathname: '/inquiry/[id]', params: { id: p._id } })}
+            />
+          ) : null}
         </Block>
       ) : null}
 
@@ -130,7 +152,7 @@ export default function PropertyScreen() {
       ) : null}
 
       <Similar id={p._id} />
-      <Comments id={p._id} />
+      <Comments id={p._id} canComment={isPublic} />
     </ScrollView>
   );
 }
@@ -154,12 +176,13 @@ function Similar({ id }: { id: string }) {
   );
 }
 
-function Comments({ id }: { id: string }) {
+function Comments({ id, canComment }: { id: string; canComment: boolean }) {
   const { t } = useTranslation();
   const comments = usePropertyComments(id);
   if (comments.isPending || comments.isError) return null;
   return (
     <Block title={t('property.comments')}>
+      {canComment ? <CommentComposer propertyId={id} /> : null}
       {comments.data.length === 0 ? (
         <Text className="text-sm text-muted">{t('property.noComments')}</Text>
       ) : (
@@ -171,6 +194,39 @@ function Comments({ id }: { id: string }) {
         ))
       )}
     </Block>
+  );
+}
+
+function CommentComposer({ propertyId }: { propertyId: string }) {
+  const { t } = useTranslation();
+  const { status } = useAuth();
+  const [text, setText] = useState('');
+  const add = useAddComment(propertyId);
+  const promptSignIn = useSignInPrompt();
+
+  if (status !== 'signedIn') {
+    return (
+      <Button title={t('comment.signInToComment')} variant="secondary" onPress={promptSignIn} />
+    );
+  }
+
+  return (
+    <View className="gap-2">
+      <TextField
+        label={t('comment.placeholder')}
+        value={text}
+        onChangeText={setText}
+        multiline
+        maxLength={COMMENT_MAX}
+        error={add.isError ? describeError(add.error) : undefined}
+      />
+      <Button
+        title={t('comment.send')}
+        disabled={!text.trim()}
+        loading={add.isPending}
+        onPress={() => add.mutate(text.trim(), { onSuccess: () => setText('') })}
+      />
+    </View>
   );
 }
 

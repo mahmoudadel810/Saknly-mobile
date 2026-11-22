@@ -58,6 +58,7 @@ export const en: Strings<typeof ar> = {
   tabs: {
     home: 'Home',
     properties: 'Properties',
+    wishlist: 'Wishlist',
     account: 'Account',
   },
   browse: {
@@ -130,6 +131,51 @@ export const en: Strings<typeof ar> = {
     error: "Couldn't load this.",
     retry: 'Try again',
   },
+  wishlist: {
+    title: 'Wishlist',
+    empty: "You haven't saved any properties yet.",
+    signedOut: 'Sign in to save properties to your wishlist.',
+    clear: 'Clear wishlist',
+    clearConfirmTitle: 'Clear your wishlist?',
+    clearConfirmBody: 'Every property will be removed from your wishlist.',
+    cancel: 'Cancel',
+    add: 'Add to wishlist',
+    remove: 'Remove from wishlist',
+  },
+  comment: {
+    placeholder: 'Write a comment',
+    send: 'Post comment',
+    signInToComment: 'Sign in to comment',
+  },
+  inquiry: {
+    title: 'Ask about this property',
+    open: 'Send an inquiry',
+    name: 'Name',
+    message: 'Your message',
+    send: 'Send inquiry',
+    sent: 'Your inquiry was sent. The lister will contact you soon.',
+  },
+  contact: {
+    title: 'Contact us',
+    subject: 'Subject',
+    message: 'Message',
+    send: 'Send',
+    sent: 'We got your message and will reply soon.',
+  },
+  testimonial: {
+    title: 'Share your experience',
+    role: 'Who you are (optional)',
+    text: 'Your review',
+    send: 'Send review',
+    sent: 'Thank you! Your review will show after an admin approves it.',
+  },
+  myProperties: {
+    title: 'My properties',
+    empty: "You haven't listed any properties yet.",
+    pending: 'Under review',
+    published: 'Published',
+    hidden: 'Not published',
+  },
   account: {
     signedOutTitle: 'Sign in to Saknly',
     signedOutBody: 'Sign in to save properties to your wishlist and list your own.',
@@ -154,5 +200,7 @@ export const en: Strings<typeof ar> = {
     nameMax: 'At most 20 characters',
     phone: 'Enter an 11-digit phone number starting with 01',
     addressMax: 'Address can be at most 200 characters',
+    lengthBetween: 'Between {{min}} and {{max}} characters',
+    phoneFormat: 'Enter a valid phone number',
   },
 };

@@ -4,34 +4,56 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { Screen } from '@/components/Screen';
+import { MyProperties } from '@/features/account/MyProperties';
 
-// Phase 3 adds my properties, the wishlist and settings here.
 export default function AccountScreen() {
   const { status } = useAuth();
   return status === 'signedIn' ? <SignedIn /> : <SignedOut />;
 }
 
-function SignedOut() {
+/** Contact and reviews work signed out too. */
+function MoreLinks() {
   const { t } = useTranslation();
   return (
-    <Screen>
-      <View className="flex-1 justify-center gap-2">
+    <View className="gap-3">
+      <Button
+        title={t('contact.title')}
+        variant="secondary"
+        onPress={() => router.push('/contact')}
+      />
+      <Button
+        title={t('testimonial.title')}
+        variant="secondary"
+        onPress={() => router.push('/testimonial')}
+      />
+    </View>
+  );
+}
+
+function SignedOut() {
+  const { t } = useTranslation();
+  const promptSignIn = useSignInPrompt();
+  return (
+    <Screen scroll>
+      <View className="flex-1 justify-center gap-2 py-10">
         <Text className="text-center text-2xl font-bold text-text">
           {t('account.signedOutTitle')}
         </Text>
         <Text className="text-center text-base text-text-2">{t('account.signedOutBody')}</Text>
       </View>
       <View className="gap-3">
-        <Button title={t('home.signIn')} onPress={() => router.push('/login')} />
+        <Button title={t('home.signIn')} onPress={promptSignIn} />
         <Button
           title={t('home.createAccount')}
           variant="secondary"
           onPress={() => router.push('/register')}
         />
       </View>
+      <MoreLinks />
     </Screen>
   );
 }
@@ -52,7 +74,7 @@ function SignedIn() {
     : [];
 
   return (
-    <Screen>
+    <Screen scroll>
       <Text accessibilityRole="header" className="text-3xl font-bold text-text">
         {t('profile.title')}
       </Text>
@@ -67,7 +89,8 @@ function SignedIn() {
             </View>
           ))}
       </View>
-      <View className="flex-1" />
+      <MyProperties />
+      <MoreLinks />
       <Button
         title={t('profile.signOut')}
         variant="secondary"

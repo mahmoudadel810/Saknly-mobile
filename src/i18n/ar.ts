@@ -52,6 +52,7 @@ export const ar = {
   tabs: {
     home: 'الرئيسية',
     properties: 'العقارات',
+    wishlist: 'المفضلة',
     account: 'حسابي',
   },
   browse: {
@@ -124,6 +125,51 @@ export const ar = {
     error: 'تعذر تحميل البيانات.',
     retry: 'إعادة المحاولة',
   },
+  wishlist: {
+    title: 'المفضلة',
+    empty: 'لم تضف أي عقار إلى المفضلة بعد.',
+    signedOut: 'سجّل الدخول لحفظ العقارات في المفضلة.',
+    clear: 'مسح المفضلة',
+    clearConfirmTitle: 'مسح المفضلة؟',
+    clearConfirmBody: 'ستتم إزالة كل العقارات من المفضلة.',
+    cancel: 'إلغاء',
+    add: 'إضافة إلى المفضلة',
+    remove: 'إزالة من المفضلة',
+  },
+  comment: {
+    placeholder: 'اكتب تعليقك',
+    send: 'إرسال التعليق',
+    signInToComment: 'سجّل الدخول لإضافة تعليق',
+  },
+  inquiry: {
+    title: 'استفسار عن العقار',
+    open: 'إرسال استفسار',
+    name: 'الاسم',
+    message: 'رسالتك',
+    send: 'إرسال الاستفسار',
+    sent: 'تم إرسال استفسارك. سيتواصل معك المعلن قريباً.',
+  },
+  contact: {
+    title: 'تواصل معنا',
+    subject: 'الموضوع',
+    message: 'الرسالة',
+    send: 'إرسال',
+    sent: 'وصلتنا رسالتك، سنرد عليك قريباً.',
+  },
+  testimonial: {
+    title: 'شاركنا رأيك',
+    role: 'صفتك (اختياري)',
+    text: 'رأيك',
+    send: 'إرسال الرأي',
+    sent: 'شكراً! سيظهر رأيك بعد مراجعة الإدارة.',
+  },
+  myProperties: {
+    title: 'عقاراتي',
+    empty: 'لم تنشر أي عقار بعد.',
+    pending: 'قيد المراجعة',
+    published: 'منشور',
+    hidden: 'غير منشور',
+  },
   account: {
     signedOutTitle: 'سجّل الدخول إلى سكنلي',
     signedOutBody: 'سجّل الدخول لحفظ العقارات في المفضلة وإضافة عقاراتك.',
@@ -148,5 +194,7 @@ export const ar = {
     nameMax: '20 حرفاً كحد أقصى',
     phone: 'أدخل رقم هاتف صحيح من 11 رقماً يبدأ بـ 01',
     addressMax: 'العنوان 200 حرف كحد أقصى',
+    lengthBetween: 'من {{min}} إلى {{max}} حرفاً',
+    phoneFormat: 'رقم الهاتف غير صحيح',
   },
 };

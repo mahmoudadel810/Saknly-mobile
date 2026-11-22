@@ -1,11 +1,12 @@
 import { isAxiosError } from 'axios';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { setReturnTo } from '@/auth/returnTo';
 import { loginSchema } from '@/auth/schemas';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
@@ -16,6 +17,7 @@ import { describeError } from '@/utils/errors';
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { signIn } = useAuth();
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>();
   const [error, setError] = useState<string | null>(null);
   const [unconfirmed, setUnconfirmed] = useState(false);
 
@@ -26,9 +28,12 @@ export default function LoginScreen() {
       setError(null);
       setUnconfirmed(false);
       try {
-        // Success flips the route guard, which leaves the (auth) screens on its own.
+        // Success flips the route guard, which leaves the (auth) screens on its own;
+        // the root navigator then returns to `redirect`.
+        setReturnTo(redirect ?? null);
         await signIn(email.trim(), password);
       } catch (e) {
+        setReturnTo(null);
         setUnconfirmed(isAxiosError(e) && e.response?.status === 403);
         setError(describeError(e));
       }
