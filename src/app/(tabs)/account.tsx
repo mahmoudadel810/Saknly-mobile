@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -7,8 +8,35 @@ import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { Screen } from '@/components/Screen';
 
-// Phase 3 adds my properties and settings here.
-export default function ProfileScreen() {
+// Phase 3 adds my properties, the wishlist and settings here.
+export default function AccountScreen() {
+  const { status } = useAuth();
+  return status === 'signedIn' ? <SignedIn /> : <SignedOut />;
+}
+
+function SignedOut() {
+  const { t } = useTranslation();
+  return (
+    <Screen>
+      <View className="flex-1 justify-center gap-2">
+        <Text className="text-center text-2xl font-bold text-text">
+          {t('account.signedOutTitle')}
+        </Text>
+        <Text className="text-center text-base text-text-2">{t('account.signedOutBody')}</Text>
+      </View>
+      <View className="gap-3">
+        <Button title={t('home.signIn')} onPress={() => router.push('/login')} />
+        <Button
+          title={t('home.createAccount')}
+          variant="secondary"
+          onPress={() => router.push('/register')}
+        />
+      </View>
+    </Screen>
+  );
+}
+
+function SignedIn() {
   const { t } = useTranslation();
   const { user, isAdmin, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
@@ -25,7 +53,9 @@ export default function ProfileScreen() {
 
   return (
     <Screen>
-      <Text className="text-3xl font-bold text-text">{t('profile.title')}</Text>
+      <Text accessibilityRole="header" className="text-3xl font-bold text-text">
+        {t('profile.title')}
+      </Text>
       <FormMessage message={user ? null : t('profile.offline')} tone="info" />
       <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
         {rows
@@ -44,7 +74,11 @@ export default function ProfileScreen() {
         loading={signingOut}
         onPress={async () => {
           setSigningOut(true);
-          await signOut();
+          try {
+            await signOut();
+          } finally {
+            setSigningOut(false);
+          }
         }}
       />
     </Screen>

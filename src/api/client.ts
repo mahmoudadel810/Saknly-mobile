@@ -60,5 +60,13 @@ export const getErrorMessage = (error: unknown, fallback: string): string => {
   return fallback;
 };
 
+/** Query retry policy: retry once on no answer or a 5xx; a 4xx won't change on retry. */
+export const shouldRetry = (failureCount: number, error: unknown): boolean => {
+  if (failureCount >= 1) return false;
+  if (!isAxiosError(error)) return false;
+  const status = error.response?.status;
+  return status === undefined || status >= 500;
+};
+
 /** True when the request never got an answer (no network, server down, timeout). */
 export const isNetworkError = (error: unknown): boolean => isAxiosError(error) && !error.response;

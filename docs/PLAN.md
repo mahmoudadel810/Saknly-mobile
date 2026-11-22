@@ -109,11 +109,18 @@ Saknly-mobile/
 ### Phase 2: Browse (works without login)
 
 1. Home: featured properties, featured agencies, approved testimonials.
-2. Properties list: infinite scroll on `allProperties`, search with filters on `search` (same query params as the web), pull to refresh.
-3. Property details: image gallery, map, owner/agency card, similar properties, comments.
+2. Properties list: infinite scroll on `allProperties` (the web listing page's endpoint, which also takes `search`), filters with the same query params as the web, pull to refresh.
+3. Property details: image gallery, location, owner/agency card, similar properties, comments.
 4. Agency details page.
 
 **Done when:** every list and detail screen shows the same data as the web app for the same property ids.
+
+**Status:** done in code and tests. Tabs: Home, Properties, Account. The browse e2e suite runs against the server's own seed data (filters, sort, paging, details, similar, comments, agencies, testimonials). Two changes from the plan:
+
+- The details screen has an **Open in Maps** button (the pin, or the address) instead of an embedded map. An in-app map with `react-native-maps` needs a Google Maps API key in the Android build; add it once there is a key.
+- Call and WhatsApp buttons use the listing's contact info.
+
+Still to check on an emulator or phone: the screens themselves, the agency logos (SVG data URIs in `expo-image`) and the Arabic digits in prices (`Intl` with `ar-EG` on Hermes). Tests ran in Node.
 
 ### Phase 3: Signed-in user features
 

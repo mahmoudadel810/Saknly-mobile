@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.e2e.test.ts'],
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-  setupFiles: ['<rootDir>/jest.setup.ts'],
+  setupFiles: ['<rootDir>/jest.setup.ts', '<rootDir>/jest.e2e.setup.ts'],
   // babel-preset-expo turns process.env.EXPO_PUBLIC_* into an import of this ESM file.
   transformIgnorePatterns: ['/node_modules/(?!expo/virtual/)'],
   testTimeout: 30_000,
