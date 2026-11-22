@@ -1,7 +1,7 @@
 import type { WishlistItem } from '@/api/account';
 import type { Property } from '@/api/browseTypes';
 
-import { publicationState } from './MyProperties';
+import { publicationState } from './publication';
 import { withFavorite } from './queries';
 import { contactSchema, inquirySchema, testimonialSchema } from './schemas';
 

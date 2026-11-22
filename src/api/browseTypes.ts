@@ -55,6 +55,9 @@ export interface Property {
   isActive?: boolean;
   contactInfo?: { name: string; phone: string; email?: string; whatsapp?: string };
   isNegotiable?: boolean;
+  /** Rent and student listings. */
+  leaseDuration?: number;
+  deposit?: number;
   isStudentFriendly?: boolean;
   studentHousingDetails?: {
     isEnabled?: boolean;
