@@ -1,9 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+  --c-primary: #0e5e57;
+  --c-primary-hover: #0a4a44;
+  --c-primary-soft: #e3f0ee;
+  --c-on-primary: #ffffff;
+  --c-secondary: #3f4a48;
+  --c-bg: #f7f6f3;
+  --c-surface-2: #fbfaf8;
+  --c-surface: #ffffff;
+  --c-surface-raised: #ffffff;
+  --c-border: #dde2e1;
+  --c-border-strong: #7e8a88;
+  --c-text: #17201f;
+  --c-text-2: #4a5654;
+  --c-muted: #66706e;
+  --c-success: #1e7a46;
+  --c-warning: #a15c07;
+  --c-error: #b42318;
+  --c-info: #1f5f99;
+  --c-field: #f2f5f4;
+  --c-accent: #c08a3e;
+  --c-on-accent: #1f1608;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-primary: #4fb3a6;
+    --c-primary-hover: #6cc4b8;
+    --c-primary-soft: #123a36;
+    --c-on-primary: #0f1413;
+    --c-secondary: #c9d1cf;
+    --c-bg: #0d1312;
+    --c-surface-2: #121918;
+    --c-surface: #161d1c;
+    --c-surface-raised: #1d2625;
+    --c-border: #2a3533;
+    --c-border-strong: #647371;
+    --c-text: #e8edec;
+    --c-text-2: #b3bebc;
+    --c-muted: #82908d;
+    --c-success: #5cc48a;
+    --c-warning: #e3a54a;
+    --c-error: #f07a6e;
+    --c-info: #7fb2e5;
+    --c-field: #1b2422;
+    --c-accent: #e0b36a;
+    --c-on-accent: #1f1608;
+  }
 }
