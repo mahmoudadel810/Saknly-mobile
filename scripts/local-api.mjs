@@ -5,6 +5,9 @@
 //
 // API:   http://127.0.0.1:5055/api/saknly/v1   (PORT)
 // Inbox: http://127.0.0.1:5056/mail            (MAIL_PORT) — JSON list of captured emails
+// Data:  the server seed script (demo users, agencies, listings, comments, testimonials).
+//        Demo logins: <name>@saknly.example.com / LocalDemo1!, admin@saknly.example.com / LocalAdmin1!
+import { spawn } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
@@ -96,6 +99,22 @@ delete process.env.VERCEL;
 
 // The server's logger writes ./logs; keep that out of this repo.
 process.chdir(mkdtempSync(path.join(tmpdir(), 'saknly-local-api-')));
+
+// Demo listings, agencies, comments and testimonials from the server's own seed script.
+// Async on purpose: a blocking spawn stops this process from draining mongod's output, and mongod stalls.
+const seedOutput = [];
+const seedCode = await new Promise((resolve) => {
+  const child = spawn(process.execPath, [path.join(serverDir, 'utils/seed.js')], {
+    env: { ...process.env, SEED_ADMIN_PASSWORD: 'LocalAdmin1!', SEED_DEMO_PASSWORD: 'LocalDemo1!' },
+  });
+  child.stdout.on('data', (chunk) => seedOutput.push(chunk));
+  child.stderr.on('data', (chunk) => seedOutput.push(chunk));
+  child.on('exit', resolve);
+});
+if (seedCode !== 0) {
+  console.error(Buffer.concat(seedOutput).toString());
+  throw new Error('seeding the local database failed');
+}
 
 const { default: initiateApp } = await fromServer('utils/App/initiateApp.js');
 const { default: routes } = await fromServer('modules/indexRouters.js');

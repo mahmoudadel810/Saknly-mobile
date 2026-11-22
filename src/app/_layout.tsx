@@ -5,12 +5,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
+import { shouldRetry } from '@/api/client';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { useThemeColors } from '@/theme/colors';
 
 SplashScreen.preventAutoHideAsync();
+
+// Where a blocked route (a guard turning false) sends the user.
+export const unstable_settings = { anchor: '(tabs)' };
 
 // The splash screen stays up until the stored session is restored.
 function SplashScreenController() {
@@ -23,6 +29,8 @@ function SplashScreenController() {
 
 function RootNavigator() {
   const { status } = useAuth();
+  const { t } = useTranslation();
+  const colors = useThemeColors();
   const signedIn = status === 'signedIn';
 
   // Mount the navigator only once the session is known: mounted earlier, the guards would
@@ -30,13 +38,24 @@ function RootNavigator() {
   if (status === 'loading') return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerTintColor: colors.primary,
+        headerStyle: { backgroundColor: colors.bg },
+        headerTitleStyle: { color: colors.text },
+        headerBackButtonDisplayMode: 'minimal',
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="properties/[id]" options={{ headerShown: true, title: '' }} />
+      <Stack.Screen
+        name="agencies/[id]"
+        options={{ headerShown: true, title: t('browse.agencies') }}
+      />
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" />
-      </Stack.Protected>
-      <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="profile" />
       </Stack.Protected>
     </Stack>
   );
@@ -44,7 +63,8 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }),
+    () =>
+      new QueryClient({ defaultOptions: { queries: { retry: shouldRetry, staleTime: 60_000 } } }),
   );
 
   return (

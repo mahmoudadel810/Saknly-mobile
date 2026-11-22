@@ -6,6 +6,7 @@ import {
   isNetworkError,
   setApiToken,
   setUnauthorizedHandler,
+  shouldRetry,
 } from './client';
 
 const mock = new MockAdapter(api);
@@ -50,6 +51,25 @@ describe('api client', () => {
     mock.onPost('/auth/refresh-token').reply(401, { success: false, message: 'Invalid token' });
     await expect(api.post('/auth/refresh-token')).rejects.toBeTruthy();
     expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+describe('shouldRetry', () => {
+  const failWith = async (reply: (m: MockAdapter) => void) => {
+    reply(mock);
+    return api.get('/properties/featured').catch((e) => e);
+  };
+
+  it('retries once after no answer or a server error', async () => {
+    expect(shouldRetry(0, await failWith((m) => m.onGet().networkError()))).toBe(true);
+    mock.reset();
+    const serverError = await failWith((m) => m.onGet().reply(503));
+    expect(shouldRetry(0, serverError)).toBe(true);
+    expect(shouldRetry(1, serverError)).toBe(false);
+  });
+
+  it('never retries a 4xx', async () => {
+    expect(shouldRetry(0, await failWith((m) => m.onGet().reply(404)))).toBe(false);
   });
 });
 

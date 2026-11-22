@@ -38,14 +38,16 @@ To use a **local** Saknly-server, set `EXPO_PUBLIC_API_URL` in `.env`:
 
 ## End-to-end tests against a real server
 
-`scripts/local-api.mjs` starts Saknly-server from `../Saknly-server` (override with `SAKNLY_SERVER_DIR`) with an in-memory MongoDB and a fake email inbox, so nothing reaches a real database or mailbox. It needs `npm install` in Saknly-server first.
+`scripts/local-api.mjs` starts Saknly-server from `../Saknly-server` (override with `SAKNLY_SERVER_DIR`) with an in-memory MongoDB and a fake email inbox, so nothing reaches a real database or mailbox. It fills the database with the server's own seed script (demo listings, agencies, comments, testimonials; demo logins `<name>@saknly.example.com` / `LocalDemo1!`). It needs `npm install` in Saknly-server first.
+
+To try the app against it from the Android emulator, set `EXPO_PUBLIC_API_URL=http://10.0.2.2:5055/api/saknly/v1` in `.env`.
 
 ```bash
 npm run local-api                                                        # terminal 1
 EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/saknly/v1 npm run test:e2e  # terminal 2
 ```
 
-The e2e suite runs the app's own auth code through the whole flow: register, confirm by the emailed link, log in, restore after restart, refresh, log out (token revoked), and reset the password with the emailed code. Captured emails are at `http://127.0.0.1:5056/mail`.
+The auth e2e suite runs the app's own auth code through the whole flow: register, confirm by the emailed link, log in, restore after restart, refresh, log out (token revoked), and reset the password with the emailed code. Captured emails are at `http://127.0.0.1:5056/mail`.
 
 ## Builds (Expo Services / EAS)
 
