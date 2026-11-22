@@ -50,6 +50,9 @@ export interface Property {
   /** English on most endpoints; /properties/featured translates it to Arabic. */
   status: string;
   views: number;
+  /** Present on every response; the public endpoints only return approved, active listings. */
+  isApproved?: boolean;
+  isActive?: boolean;
   contactInfo?: { name: string; phone: string; email?: string; whatsapp?: string };
   isNegotiable?: boolean;
   isStudentFriendly?: boolean;

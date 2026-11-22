@@ -53,6 +53,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="wishlist"
+        options={{
+          title: t('tabs.wishlist'),
+          tabBarIcon: (props: TabIconProps) => (
+            <TabIcon {...props} name="heart-outline" focusedName="heart" />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: t('tabs.account'),

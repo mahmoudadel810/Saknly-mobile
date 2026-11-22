@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import type { Property } from '@/api/browseTypes';
+import { FavoriteButton } from '@/features/account/FavoriteButton';
 import { useThemeColors } from '@/theme/colors';
 
 import { categoryLabel, coverImage, formatPrice, placeLabel } from './format';
@@ -21,47 +22,51 @@ export function PropertyCard({ property, compact = false }: PropertyCardProps) {
   const image = coverImage(property);
 
   return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityLabel={`${property.title}, ${formatPrice(property)}`}
-      onPress={() => router.push({ pathname: '/properties/[id]', params: { id: property._id } })}
-      className={`overflow-hidden rounded-2xl border border-border bg-surface active:opacity-90 ${
-        compact ? 'w-64' : 'w-full'
-      }`}
-    >
-      <View>
-        <Image
-          source={image ? { uri: image } : undefined}
-          style={{ width: '100%', aspectRatio: 16 / 10, backgroundColor: colors.field }}
-          contentFit="cover"
-          transition={150}
-          accessibilityIgnoresInvertColors
-        />
-        <View className="absolute start-3 top-3 rounded-full bg-primary px-3 py-1">
-          <Text className="text-xs font-semibold text-on-primary">{categoryLabel(property)}</Text>
-        </View>
-      </View>
-      <View className="gap-1.5 p-3">
-        <Text className="text-lg font-bold text-primary">{formatPrice(property)}</Text>
-        <Text numberOfLines={1} className="text-base font-semibold text-text">
-          {property.title}
-        </Text>
-        <View className="flex-row items-center gap-1">
-          <Ionicons name="location-outline" size={14} color={colors.muted} />
-          <Text numberOfLines={1} className="flex-1 text-sm text-muted">
-            {placeLabel(property)}
-          </Text>
-        </View>
-        <View className="flex-row gap-4 pt-1">
-          <Fact icon="bed-outline" text={t('property.bedrooms', { count: property.bedrooms })} />
-          <Fact
-            icon="water-outline"
-            text={t('property.bathrooms', { count: property.bathrooms })}
+    <View className={compact ? 'w-64' : 'w-full'}>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${property.title}, ${formatPrice(property)}`}
+        onPress={() => router.push({ pathname: '/properties/[id]', params: { id: property._id } })}
+        className="overflow-hidden rounded-2xl border border-border bg-surface active:opacity-90"
+      >
+        <View>
+          <Image
+            source={image ? { uri: image } : undefined}
+            style={{ width: '100%', aspectRatio: 16 / 10, backgroundColor: colors.field }}
+            contentFit="cover"
+            transition={150}
+            accessibilityIgnoresInvertColors
           />
-          <Fact icon="resize-outline" text={t('property.area', { count: property.area })} />
+          <View className="absolute start-3 top-3 rounded-full bg-primary px-3 py-1">
+            <Text className="text-xs font-semibold text-on-primary">{categoryLabel(property)}</Text>
+          </View>
         </View>
+        <View className="gap-1.5 p-3">
+          <Text className="text-lg font-bold text-primary">{formatPrice(property)}</Text>
+          <Text numberOfLines={1} className="text-base font-semibold text-text">
+            {property.title}
+          </Text>
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="location-outline" size={14} color={colors.muted} />
+            <Text numberOfLines={1} className="flex-1 text-sm text-muted">
+              {placeLabel(property)}
+            </Text>
+          </View>
+          <View className="flex-row gap-4 pt-1">
+            <Fact icon="bed-outline" text={t('property.bedrooms', { count: property.bedrooms })} />
+            <Fact
+              icon="water-outline"
+              text={t('property.bathrooms', { count: property.bathrooms })}
+            />
+            <Fact icon="resize-outline" text={t('property.area', { count: property.area })} />
+          </View>
+        </View>
+      </Pressable>
+      {/* A sibling, not a child: inside the card it would be unreachable for screen readers. */}
+      <View className="absolute end-3 top-3">
+        <FavoriteButton property={property} overPhoto />
       </View>
-    </Pressable>
+    </View>
   );
 }
 

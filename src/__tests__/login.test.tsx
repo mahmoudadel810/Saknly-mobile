@@ -8,6 +8,7 @@ const mockSignIn = jest.fn();
 jest.mock('@/auth/AuthProvider', () => ({ useAuth: () => ({ signIn: mockSignIn }) }));
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn() },
+  useLocalSearchParams: () => ({}),
   Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 jest.mock('react-native-safe-area-context', () => {

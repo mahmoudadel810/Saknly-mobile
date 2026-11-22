@@ -130,6 +130,8 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 
 **Done when:** a favorite added on mobile shows on the web wishlist and the other way round.
 
+**Status:** done in code and tests. A Wishlist tab and hearts on every card and listing header (one wishlist request serves all hearts; toggles update at once and roll back on failure). Listing pages add comments and an inquiry form. Account shows my properties (under review / published / not published) and links to Contact us and Share your experience (a general review, held for admin approval). The account e2e suite checks favorites both ways through the app's endpoints (`/users/me/wishlist`) and the web app's (`/properties/:id/favorite`), and reads inquiries, contact messages and reviews back as the seed admin. Signing in from a heart, a comment or the Wishlist tab returns to that screen (a `redirect` param, like the web's). Still to check on an emulator or phone: the screens, and that return after sign-in (it waits one tick for the route guard's own redirect; the timing is verified in tests only).
+
 ### Phase 4: Upload and edit properties
 
 1. Multi-step form that mirrors `uploadProperty` (same fields and Yup rules).
