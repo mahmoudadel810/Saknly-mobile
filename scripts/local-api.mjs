@@ -5,8 +5,10 @@
 //
 // API:   http://127.0.0.1:5055/api/saknly/v1   (PORT)
 // Inbox: http://127.0.0.1:5056/mail            (MAIL_PORT) — JSON list of captured emails
-import net from 'node:net';
+import { mkdtempSync } from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -91,6 +93,9 @@ Object.assign(process.env, {
   GEMINI_API_KEY: '',
 });
 delete process.env.VERCEL;
+
+// The server's logger writes ./logs; keep that out of this repo.
+process.chdir(mkdtempSync(path.join(tmpdir(), 'saknly-local-api-')));
 
 const { default: initiateApp } = await fromServer('utils/App/initiateApp.js');
 const { default: routes } = await fromServer('modules/indexRouters.js');
