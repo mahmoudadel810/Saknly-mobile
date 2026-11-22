@@ -2,7 +2,7 @@
 
 The Android and iOS app for Saknly, built with Expo and React Native. It uses the same API as the web app ([Saknly-client](https://github.com/mahmoudadel810/Saknly-client)) and the server ([Saknly-server](https://github.com/mahmoudadel810/Saknly-server)): `/api/saknly/v1`.
 
-The full plan is in [docs/PLAN.md](docs/PLAN.md); where things stand is in [docs/HANDOFF.md](docs/HANDOFF.md).
+The full plan is in [docs/PLAN.md](docs/PLAN.md).
 
 ## Stack
 

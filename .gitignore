@@ -45,3 +45,6 @@ example
 # env
 .env
 logs/
+
+# agent-only handoff notes (never commit: may hold personal data)
+docs/HANDOFF.md
