@@ -49,7 +49,7 @@ export const restoreSession = async (): Promise<Session | null> => {
       await tokenStorage.clear();
       return null;
     }
-    // Offline or server down: stay signed in; the user is loaded again later.
+    // Offline or server down: stay signed in; AuthProvider loads the user on the next foreground.
     return { token, user: null };
   }
 };

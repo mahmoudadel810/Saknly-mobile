@@ -72,6 +72,7 @@
   "jest": {
     "preset": "jest-expo",
     "moduleNameMapper": {
+      "\\.css$": "<rootDir>/src/test/styleStub.js",
       "^@/assets/(.*)$": "<rootDir>/assets/$1",
       "^@/(.*)$": "<rootDir>/src/$1"
     },

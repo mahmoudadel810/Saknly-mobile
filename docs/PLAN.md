@@ -98,11 +98,13 @@ Saknly-mobile/
 ### Phase 1: API layer and auth
 
 1. Port `api.ts`: base URL and prefix from env, attach `Saknly__<token>`, and on a 401 from a non-auth route clear the token and go to login.
-2. Write typed functions for every endpoint in section 2, porting `shared/services/*` and `types/*` from the web app first.
+2. Write typed functions for the auth endpoints. Each later phase adds the typed functions for the endpoints it uses (porting `shared/services/*` and `types/*` from the web app), checked against the local API with an e2e test.
 3. `AuthProvider`: read the token from secure storage on launch, call `getMe`, refresh on foreground, log out.
 4. Screens: login, register, check-email (with resend), forgot password, reset with the code.
 
-**Done when:** a new account can register, confirm by email, log in, survive an app restart, refresh its token and log out on the **local** server (`npm run dev` in Saknly-server, emulator pointed at `10.0.2.2`).
+**Done when:** a new account can register, confirm by email, log in, survive an app restart, refresh its token and log out on the **local** server.
+
+**Status:** done in code and tests. The auth flow passes end to end against a local Saknly-server (`npm run local-api` + `npm run test:e2e`), and the route guards are tested on the real `src/app` tree. Still to check: the screens on an emulator or phone.
 
 ### Phase 2: Browse (works without login)
 
