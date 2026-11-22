@@ -2,15 +2,11 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
-import type { Property } from '@/api/browseTypes';
 import { ErrorView, LoadingView } from '@/components/StateViews';
 import { formatPrice, placeLabel } from '@/features/properties/format';
 
+import { publicationState } from './publication';
 import { useMyProperties } from './queries';
-
-/** Where a listing stands: waiting for an admin, live, or approved but hidden. */
-export const publicationState = (property: Pick<Property, 'isApproved' | 'isActive'>) =>
-  !property.isApproved ? 'pending' : property.isActive ? 'published' : 'hidden';
 
 const stateClass = {
   pending: 'bg-surface-2 text-warning',

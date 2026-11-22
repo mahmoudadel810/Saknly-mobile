@@ -3,8 +3,10 @@ import { isAxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, ScrollView, Text, View } from 'react-native';
+import { Alert, FlatList, ScrollView, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
+import type { Property } from '@/api/browseTypes';
 import { useAuth } from '@/auth/AuthProvider';
 import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
@@ -14,6 +16,7 @@ import { TextField } from '@/components/TextField';
 import { FavoriteButton } from '@/features/account/FavoriteButton';
 import { useAddComment } from '@/features/account/queries';
 import { COMMENT_MAX } from '@/features/account/schemas';
+import { useDeleteListing } from '@/features/listing/queries';
 import { callUrl, mapsUrl, whatsAppUrl } from '@/features/properties/contact';
 import { categoryLabel, formatPrice, placeLabel, statusLabel } from '@/features/properties/format';
 import { Gallery } from '@/features/properties/Gallery';
@@ -151,9 +154,58 @@ export default function PropertyScreen() {
         </View>
       ) : null}
 
+      <OwnerActions property={p} />
+
       <Similar id={p._id} />
       <Comments id={p._id} canComment={isPublic} />
     </ScrollView>
+  );
+}
+
+/** Edit and delete, for the listing's owner. */
+function OwnerActions({ property }: { property: Property }) {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const remove = useDeleteListing();
+  const ownerId = typeof property.owner === 'object' ? property.owner?._id : property.owner;
+  if (!user || !ownerId || ownerId !== user._id) return null;
+
+  const confirmDelete = () =>
+    Alert.alert(t('listing.deleteConfirmTitle'), t('listing.deleteConfirmBody'), [
+      { text: t('wishlist.cancel'), style: 'cancel' },
+      {
+        text: t('listing.delete'),
+        style: 'destructive',
+        onPress: () =>
+          remove.mutate(property._id, {
+            onSuccess: () => {
+              Toast.show({ type: 'success', text1: t('listing.deleted') });
+              router.back();
+            },
+            onError: (error) => Toast.show({ type: 'error', text1: describeError(error) }),
+          }),
+      },
+    ]);
+
+  return (
+    <View className="flex-row gap-3 px-5">
+      <View className="flex-1">
+        <Button
+          title={t('listing.edit')}
+          onPress={() =>
+            router.push({ pathname: '/listing/edit/[id]', params: { id: property._id } })
+          }
+        />
+      </View>
+      <View className="flex-1">
+        <Button
+          title={t('listing.delete')}
+          variant="secondary"
+          loading={remove.isPending}
+          onPress={confirmDelete}
+        />
+      </View>
+    </View>
   );
 }
 

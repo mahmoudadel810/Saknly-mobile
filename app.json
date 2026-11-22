@@ -42,6 +42,14 @@
           "supportsRTL": true,
           "supportedLocales": ["ar", "en"]
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يحتاج سكنلي إلى صورك لإضافتها إلى إعلان عقارك.",
+          "cameraPermission": "يحتاج سكنلي إلى الكاميرا لتصوير عقارك للإعلان.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

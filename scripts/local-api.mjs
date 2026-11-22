@@ -1,10 +1,11 @@
 // Runs Saknly-server locally for end-to-end tests of the mobile app, fully isolated:
-// an in-memory MongoDB, a fake SMTP inbox, no queue, no Cloudinary. Nothing reaches a real service.
+// an in-memory MongoDB, a fake SMTP inbox, a fake Cloudinary, no queue. Nothing reaches a real service.
 //
 //   SAKNLY_SERVER_DIR=../Saknly-server node scripts/local-api.mjs
 //
 // API:   http://127.0.0.1:5055/api/saknly/v1   (PORT)
 // Inbox: http://127.0.0.1:5056/mail            (MAIL_PORT) — JSON list of captured emails
+// Media: http://127.0.0.1:5057/uploads         (MEDIA_PORT) — uploaded and deleted photo ids
 // Data:  the server seed script (demo users, agencies, listings, comments, testimonials).
 //        Demo logins: <name>@saknly.example.com / LocalDemo1!, admin@saknly.example.com / LocalAdmin1!
 import { spawn } from 'node:child_process';
@@ -19,6 +20,9 @@ const serverDir = path.resolve(process.env.SAKNLY_SERVER_DIR || '../Saknly-serve
 const PORT = Number(process.env.PORT || 5055);
 const SMTP_PORT = Number(process.env.SMTP_PORT || 2525);
 const MAIL_PORT = Number(process.env.MAIL_PORT || 5056);
+const MEDIA_PORT = Number(process.env.MEDIA_PORT || 5057);
+// Host in the image URLs the fake Cloudinary hands out: 10.0.2.2 for the Android emulator.
+const MEDIA_HOST = process.env.MEDIA_HOST || '127.0.0.1';
 
 const fromServer = (rel) => import(pathToFileURL(path.join(serverDir, rel)).href);
 
@@ -64,6 +68,95 @@ http
   })
   .listen(MAIL_PORT, '127.0.0.1');
 
+// --- fake Cloudinary: the server's SDK uploads here (CLOUDINARY_URL upload_prefix below) ----
+// Stores each uploaded file in memory and serves it back, so listings with photos work locally.
+const media = new Map(); // publicId -> { type, bytes }
+const deletedMedia = [];
+let mediaCount = 0;
+
+/** The bytes and type of the multipart field named "file". */
+const multipartFile = (body, contentType) => {
+  const boundary = /boundary=(?:"([^"]+)"|([^;]+))/.exec(contentType ?? '');
+  if (!boundary) return null;
+  const delimiter = Buffer.from(`--${boundary[1] ?? boundary[2]}`);
+  let start = body.indexOf(delimiter);
+  while (start !== -1) {
+    const next = body.indexOf(delimiter, start + delimiter.length);
+    if (next === -1) break;
+    const part = body.subarray(start + delimiter.length + 2, next - 2);
+    const headerEnd = part.indexOf('\r\n\r\n');
+    const headers = part.subarray(0, headerEnd).toString();
+    if (/name="file"/.test(headers)) {
+      const type = /content-type:\s*([^\r\n]+)/i.exec(headers)?.[1] ?? 'image/jpeg';
+      return { type, bytes: Buffer.from(part.subarray(headerEnd + 4)) };
+    }
+    start = next;
+  }
+  return null;
+};
+
+const readBody = (req) =>
+  new Promise((resolve) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+
+http
+  .createServer(async (req, res) => {
+    const body = await readBody(req);
+    const json = (status, value) => {
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(value));
+    };
+    const url = new URL(req.url, 'http://local');
+
+    if (req.method === 'GET' && url.pathname.startsWith('/media/')) {
+      const item = media.get(decodeURIComponent(url.pathname.slice('/media/'.length)));
+      if (!item) return json(404, { error: 'not found' });
+      // The SDK sends application/octet-stream; the server always uploads JPEG (or GIF).
+      res.writeHead(200, {
+        'Content-Type': item.type.startsWith('image/') ? item.type : 'image/jpeg',
+      });
+      return res.end(item.bytes);
+    }
+    if (req.method === 'GET' && url.pathname === '/uploads') {
+      return json(200, { stored: [...media.keys()], deleted: deletedMedia });
+    }
+    // /v1_1/<cloud>/<resource type>/upload
+    if (req.method === 'POST' && /\/upload$/.test(url.pathname)) {
+      const file = multipartFile(body, req.headers['content-type']);
+      if (!file) return json(400, { error: { message: 'no file' } });
+      const publicId = `saknly/local-${++mediaCount}`;
+      media.set(publicId, file);
+      return json(200, {
+        public_id: publicId,
+        secure_url: `http://${MEDIA_HOST}:${MEDIA_PORT}/media/${encodeURIComponent(publicId)}`,
+        resource_type: 'image',
+        format: 'jpg',
+        bytes: file.bytes.length,
+        width: 800,
+        height: 600,
+      });
+    }
+    // destroy (one) and delete_resources (batch)
+    const params = new URLSearchParams(body.toString());
+    const ids = [
+      ...params.getAll('public_id'),
+      ...params.getAll('public_ids[]'),
+      ...url.searchParams.getAll('public_ids[]'),
+    ];
+    for (const id of ids) {
+      if (media.delete(id) || !deletedMedia.includes(id)) deletedMedia.push(id);
+    }
+    if (/\/destroy$/.test(url.pathname)) return json(200, { result: 'ok' });
+    if (/\/resources\//.test(url.pathname)) {
+      return json(200, { deleted: Object.fromEntries(ids.map((id) => [id, 'deleted'])) });
+    }
+    return json(200, {});
+  })
+  .listen(MEDIA_PORT, '0.0.0.0');
+
 // --- isolated environment, set before the server reads it (real env wins over .env files) ---
 // Reuse the MongoDB binary the server's own test suite already downloaded.
 process.env.MONGOMS_DOWNLOAD_DIR ||= path.join(
@@ -88,9 +181,11 @@ Object.assign(process.env, {
   EMAIL_SMTP_USER: 'local',
   EMAIL_SMTP_PASS: 'local',
   EMAIL_FROM: '"Saknly" <no-reply@saknly.local>',
-  CLOUDINARY_CLOUD_NAME: '',
-  CLOUDINARY_API_KEY: '',
-  CLOUDINARY_API_SECRET: '',
+  // The SDK reads upload_prefix from CLOUDINARY_URL when it loads: uploads go to the fake above.
+  CLOUDINARY_URL: `cloudinary://local:local@localcloud?upload_prefix=http://127.0.0.1:${MEDIA_PORT}`,
+  CLOUDINARY_CLOUD_NAME: 'localcloud',
+  CLOUDINARY_API_KEY: 'local',
+  CLOUDINARY_API_SECRET: 'local',
   GOOGLE_CLIENT_ID: '',
   GOOGLE_CLIENT_SECRET: '',
   GEMINI_API_KEY: '',

@@ -11,9 +11,12 @@
     "expo-constants": "~58.0.16",
     "expo-dev-client": "~58.0.21",
     "expo-device": "~58.0.5",
+    "expo-file-system": "~58.0.14",
     "expo-font": "~58.0.12",
     "expo-glass-effect": "~58.0.5",
     "expo-image": "~58.0.18",
+    "expo-image-manipulator": "~58.0.16",
+    "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.17",
     "expo-localization": "~58.0.5",
     "expo-router": "~58.0.32",
@@ -78,7 +81,8 @@
       "^@/(.*)$": "<rootDir>/src/$1"
     },
     "setupFiles": [
-      "<rootDir>/jest.setup.ts"
+      "<rootDir>/jest.setup.ts",
+      "<rootDir>/jest.rn.setup.ts"
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",

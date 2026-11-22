@@ -40,9 +40,9 @@ To use a **local** Saknly-server, set `EXPO_PUBLIC_API_URL` in `.env`:
 
 ## End-to-end tests against a real server
 
-`scripts/local-api.mjs` starts Saknly-server from `../Saknly-server` (override with `SAKNLY_SERVER_DIR`) with an in-memory MongoDB and a fake email inbox, so nothing reaches a real database or mailbox. It fills the database with the server's own seed script (demo listings, agencies, comments, testimonials; demo logins `<name>@saknly.example.com` / `LocalDemo1!`). It needs `npm install` in Saknly-server first.
+`scripts/local-api.mjs` starts Saknly-server from `../Saknly-server` (override with `SAKNLY_SERVER_DIR`) with an in-memory MongoDB, a fake email inbox and a fake Cloudinary (uploaded photos are kept in memory and served at `http://127.0.0.1:5057/media/…`), so nothing reaches a real database, mailbox or Cloudinary account. It fills the database with the server's own seed script (demo listings, agencies, comments, testimonials; demo logins `<name>@saknly.example.com` / `LocalDemo1!`). It needs `npm install` in Saknly-server first.
 
-To try the app against it from the Android emulator, set `EXPO_PUBLIC_API_URL=http://10.0.2.2:5055/api/saknly/v1` in `.env`.
+To try the app against it from the Android emulator, set `EXPO_PUBLIC_API_URL=http://10.0.2.2:5055/api/saknly/v1` in `.env`, and start the server with `MEDIA_HOST=10.0.2.2 npm run local-api` so uploaded photos load on the emulator.
 
 ```bash
 npm run local-api                                                        # terminal 1

@@ -89,6 +89,7 @@ function SignedIn() {
             </View>
           ))}
       </View>
+      <Button title={t('listing.add')} onPress={() => router.push('/listing/new')} />
       <MyProperties />
       <MoreLinks />
       <Button

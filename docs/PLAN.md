@@ -140,6 +140,8 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 
 **Done when:** a property with 8 phone photos uploads successfully to the **deployed Vercel API**, not only to local. Vercel's body cap is what decides this.
 
+**Status:** done in code and tests, except the check against the deployed API (needs a device and your go-ahead: it creates a real listing in production). One form (not multi-step) with the web form's core fields and rules: kind, type, title, description, price, area, bedrooms (0 for a shop), bathrooms, floors, amenities, negotiable, place, contact, rental lease and deposit, student room type / students per room / gender. Photos from the gallery or camera, resized to a 1280 px long edge and saved as JPEG (no HEIC), at most 8 and 4 MB in total, with upload progress. No reordering yet: the first photo is the cover. Edit keeps, removes and adds photos (`images[i]`, `imagesToDelete[]`, `newImages`); delete asks first. Upload requests hand the FormData to React Native untouched (identity `transformRequest`), so axios can't JSON-encode it. `local-api` runs a fake Cloudinary (via `CLOUDINARY_URL` upload_prefix), and the listing e2e suite uploads real JPEGs through the server's own sharp + Cloudinary SDK path. Web-only for now: sale installments and delivery, rental utilities and rules, nearby universities, the map pin.
+
 ### Phase 5: AI chat and polish
 
 1. Chat screen on `POST /chat` with a 500-character limit, Arabic replies, and an error state for 503.

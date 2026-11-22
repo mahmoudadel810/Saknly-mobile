@@ -74,6 +74,16 @@ function RootNavigator() {
         name="testimonial"
         options={{ headerShown: true, title: t('testimonial.title') }}
       />
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen
+          name="listing/new"
+          options={{ headerShown: true, title: t('listing.newTitle') }}
+        />
+        <Stack.Screen
+          name="listing/edit/[id]"
+          options={{ headerShown: true, title: t('listing.editTitle') }}
+        />
+      </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
