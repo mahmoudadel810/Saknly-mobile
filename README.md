@@ -35,6 +35,19 @@ To use a **local** Saknly-server, set `EXPO_PUBLIC_API_URL` in `.env`:
 | `npm test`               | Jest unit tests                                              |
 | `npm run format`         | Format everything with Prettier                              |
 | `npm run export:android` | Bundle the Android JS (what CI runs to prove the app builds) |
+| `npm run local-api`      | Run Saknly-server locally, isolated (see below)              |
+| `npm run test:e2e`       | End-to-end tests against the local API                       |
+
+## End-to-end tests against a real server
+
+`scripts/local-api.mjs` starts Saknly-server from `../Saknly-server` (override with `SAKNLY_SERVER_DIR`) with an in-memory MongoDB and a fake email inbox, so nothing reaches a real database or mailbox. It needs `npm install` in Saknly-server first.
+
+```bash
+npm run local-api                                                        # terminal 1
+EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/saknly/v1 npm run test:e2e  # terminal 2
+```
+
+The e2e suite runs the app's own auth code through the whole flow: register, confirm by the emailed link, log in, restore after restart, refresh, log out (token revoked), and reset the password with the emailed code. Captured emails are at `http://127.0.0.1:5056/mail`.
 
 ## Builds (Expo Services / EAS)
 
