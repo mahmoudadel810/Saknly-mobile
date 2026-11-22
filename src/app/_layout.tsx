@@ -2,8 +2,7 @@ import '../global.css';
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,15 +12,21 @@ import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 
 SplashScreen.preventAutoHideAsync();
 
+// The splash screen stays up until the stored session is restored.
+function SplashScreenController() {
+  const { status } = useAuth();
+  useEffect(() => {
+    if (status !== 'loading') SplashScreen.hide();
+  }, [status]);
+  return null;
+}
+
 function RootNavigator() {
   const { status } = useAuth();
   const signedIn = status === 'signedIn';
 
-  useEffect(() => {
-    if (status !== 'loading') SplashScreen.hideAsync();
-  }, [status]);
-
-  // Keep the splash screen until the stored session is restored.
+  // Mount the navigator only once the session is known: mounted earlier, the guards would
+  // treat a signed-in user as signed out and redirect a link to /profile away to home.
   if (status === 'loading') return null;
 
   return (
@@ -46,6 +51,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <SplashScreenController />
           <RootNavigator />
           <StatusBar style="auto" />
         </AuthProvider>

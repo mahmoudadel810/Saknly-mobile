@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import {
   createContext,
   type PropsWithChildren,
@@ -59,7 +60,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => setUnauthorizedHandler(null);
   }, [dropSession]);
 
-  // Back in the foreground: refresh a token close to expiry, drop an expired one.
+  const hasUserRef = useRef(false);
+  useEffect(() => {
+    hasUserRef.current = user !== null;
+  }, [user]);
+
+  // Back in the foreground: refresh a token close to expiry, drop an expired one, and load
+  // the user if the app started offline.
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (state) => {
       const token = tokenRef.current;
@@ -69,6 +76,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (next !== token) {
         tokenRef.current = next;
         setApiToken(next);
+      }
+      if (!hasUserRef.current) {
+        try {
+          setUser(await authApi.getMe(next));
+        } catch (error) {
+          if (isAxiosError(error) && error.response?.status === 401) await dropSession();
+        }
       }
     });
     return () => subscription.remove();

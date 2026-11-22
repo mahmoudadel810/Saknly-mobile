@@ -6,13 +6,10 @@ import i18n from '@/i18n';
 const mockSignIn = jest.fn();
 
 jest.mock('@/auth/AuthProvider', () => ({ useAuth: () => ({ signIn: mockSignIn }) }));
-jest.mock('expo-router', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    router: { push: jest.fn(), replace: jest.fn() },
-    Link: ({ children }: { children: React.ReactNode }) => children,
-  };
-});
+jest.mock('expo-router', () => ({
+  router: { push: jest.fn(), replace: jest.fn() },
+  Link: ({ children }: { children: React.ReactNode }) => children,
+}));
 jest.mock('react-native-safe-area-context', () => {
   const { View } = jest.requireActual('react-native');
   return { SafeAreaView: View };
