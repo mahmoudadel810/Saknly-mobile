@@ -10,8 +10,10 @@ export const en: Strings<typeof ar> = {
     confirmPassword: 'Confirm password',
     networkError: "Couldn't reach the server. Check your connection and try again.",
     unexpectedError: 'Something went wrong. Please try again.',
+    loading: 'Loading',
     back: 'Back',
     cantOpenLink: 'No app on your phone can open this link.',
+    offline: "You're offline. Open screens keep showing what was loaded earlier.",
   },
   home: {
     welcome: 'Welcome to Saknly',
@@ -59,6 +61,7 @@ export const en: Strings<typeof ar> = {
     home: 'Home',
     properties: 'Properties',
     wishlist: 'Wishlist',
+    assistant: 'Assistant',
     account: 'Account',
   },
   browse: {
@@ -66,6 +69,7 @@ export const en: Strings<typeof ar> = {
     agencies: 'Featured agencies',
     testimonials: 'What our clients say',
     seeAll: 'See all',
+    noFeatured: 'No properties to show right now.',
     title: 'Properties',
     searchPlaceholder: 'Search by city, address or type',
     filters: 'Filters',
@@ -258,6 +262,174 @@ export const en: Strings<typeof ar> = {
     roleUser: 'User',
     signOut: 'Sign out',
     offline: "Your account details can't be loaded right now.",
+  },
+  chat: {
+    title: 'Saknly assistant',
+    disclaimer: 'The assistant can make mistakes. Check the details on the property page.',
+    emptyTitle: 'How can I help?',
+    emptyBody: 'Say what you are looking for: property type, city and price.',
+    suggestions: [
+      'Apartments for rent in Shebin El Kom',
+      'Apartments for sale in New Cairo',
+      'Student housing near the university',
+      'Properties for sale under 1 million EGP',
+    ],
+    inputLabel: 'Your question',
+    send: 'Send question',
+    thinking: 'The assistant is typing…',
+    you: 'You',
+    assistant: 'Assistant',
+    retry: 'Send the question again',
+    unavailable: 'The assistant is unavailable right now. Try again in a moment.',
+  },
+  pages: {
+    about: {
+      title: 'About Saknly',
+      intro:
+        'One place for properties for sale, for rent and student housing, with a direct line to the owner.',
+      sections: [
+        {
+          title: 'What is Saknly?',
+          paragraphs: [
+            'Saknly lists properties and lets you search them: apartments, villas, shops, studios and duplexes, for sale or for rent, plus student housing near universities.',
+            'Saknly covers all of Egypt.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'How does it work?',
+          paragraphs: [
+            'Browse and search properties without an account. When you find one you like, contact the owner directly using the contact details on the property page.',
+            'To list your property, create an account and tap "List your property" in Account. The Saknly team reviews every listing before it is published, and it shows in search results once approved.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'Our goal',
+          paragraphs: [
+            'To make finding a home easier and clearer: full details for every property, real photos, a clear price and a direct way to reach the owner.',
+          ],
+          bullets: [],
+        },
+      ],
+      browse: 'Browse properties',
+    },
+    faq: {
+      title: 'FAQ',
+      intro: 'Short answers about searching, listing and your Saknly account.',
+      items: [
+        {
+          question: 'How do I list my property on Saknly?',
+          answer:
+            'Create an account and confirm your email, then tap "List your property" in Account, fill in the property details and add at least one photo (up to 8). The app shrinks photos automatically before uploading. After you submit, the Saknly team reviews the listing before it is published.',
+        },
+        {
+          question: 'When does my listing show in search results?',
+          answer:
+            'After the Saknly team reviews and approves it. Follow its status in Account under "My properties": "Under review" or "Published". A rejected listing is removed, and we email the contact address you wrote in it.',
+        },
+        {
+          question: 'Can I edit my listing after it is published?',
+          answer:
+            'Yes. Open "My properties" in Account, open the listing and tap "Edit". Any edit sends the listing back for review, so it is hidden from everyone until the Saknly team approves it again.',
+        },
+        {
+          question: 'How do I delete my listing?',
+          answer:
+            'Open the listing from "My properties", tap "Delete property" and confirm. Deleting is permanent and also removes the listing\'s photos and comments.',
+        },
+        {
+          question: 'How do I contact a property owner?',
+          answer:
+            "The contact details the owner wrote are on the property page: a phone number and sometimes WhatsApp. You can also send an inquiry from the same page. Saknly doesn't take part in agreements or payments.",
+        },
+        {
+          question: 'Do I need an account to browse?',
+          answer:
+            'No. Browsing and searching are open to everyone. You need an account to save properties to your wishlist and to list a property.',
+        },
+        {
+          question: 'What is student housing?',
+          answer:
+            'Listings made for students, where the owner states the room type, how many students share a room and who it is for. Choose "Student housing" in search to see only those.',
+        },
+        {
+          question: 'I forgot my password. What do I do?',
+          answer:
+            'Tap "Forgot password?" on the sign-in screen and enter your email. We will send you a code to enter with your new password.',
+        },
+        {
+          question: "The confirmation email didn't arrive.",
+          answer:
+            'Check your spam folder. If it is not there, try signing in: the app will offer "Resend confirmation link".',
+        },
+        {
+          question: 'What does the Saknly assistant do?',
+          answer:
+            'It answers questions about the listed properties and how to use Saknly. It can be wrong, so check the details on the property page, and do not type personal information into it.',
+        },
+      ],
+      moreTitle: "Didn't find your answer?",
+      moreBody: 'Write to us and we will reply by email.',
+    },
+    privacy: {
+      title: 'Privacy policy',
+      updated: 'Last updated: 23 November 2026',
+      sections: [
+        {
+          title: 'What we collect',
+          paragraphs: [],
+          bullets: [
+            'Your account details: username, email, phone number and address. Your password is stored encrypted and cannot be read.',
+            'Your listings: property details, photos, location and the contact details you write in the listing.',
+            'What you send us: "Contact us" messages, your comments on properties, your inquiries and your questions to the Saknly assistant.',
+            "Technical data: IP address and device type in server logs. The app keeps your sign-in token in the phone's secure storage.",
+          ],
+        },
+        {
+          title: 'Camera and photos',
+          paragraphs: [
+            'The app only reaches the camera or your photos when you choose to add photos to a listing. It shrinks the photos you pick on your phone and uploads them with the listing only. It does not read any others.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'How we use it',
+          paragraphs: [
+            'We use your data to run your account, show and review your listings before publishing, reply to your messages and send account emails: email confirmation, the password reset code and the review decision on your listing.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'What others can see',
+          paragraphs: [
+            'The details of your published listing, including the contact details you wrote in it, are visible to everyone using Saknly. Your comments show with your username. We do not show the email or phone saved on your account.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'Services we use',
+          paragraphs: [
+            "We store listing photos with Cloudinary, send email through an email provider and host the server on Vercel. Your questions to the Saknly assistant are sent to Google's Gemini service to produce the answer, so do not type personal information into it. We do not sell your data to anyone.",
+          ],
+          bullets: [],
+        },
+        {
+          title: 'Your choices',
+          paragraphs: [
+            'You can delete your listings from "My properties". To delete your account or correct its details, write to us from the "Contact us" screen.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'Keeping data safe',
+          paragraphs: [
+            'We take technical precautions to protect your data, such as encrypting passwords and using a secure connection. Still, no method of transfer or storage is completely secure.',
+          ],
+          bullets: [],
+        },
+      ],
+    },
   },
   validation: {
     required: 'This field is required',

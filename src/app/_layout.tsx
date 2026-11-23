@@ -6,12 +6,14 @@ import { type Href, router, SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { shouldRetry } from '@/api/client';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { takeReturnTo } from '@/auth/returnTo';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { useThemeColors } from '@/theme/colors';
 
 SplashScreen.preventAutoHideAsync();
@@ -74,6 +76,12 @@ function RootNavigator() {
         name="testimonial"
         options={{ headerShown: true, title: t('testimonial.title') }}
       />
+      <Stack.Screen name="about" options={{ headerShown: true, title: t('pages.about.title') }} />
+      <Stack.Screen name="faq" options={{ headerShown: true, title: t('pages.faq.title') }} />
+      <Stack.Screen
+        name="privacy"
+        options={{ headerShown: true, title: t('pages.privacy.title') }}
+      />
       <Stack.Protected guard={signedIn}>
         <Stack.Screen
           name="listing/new"
@@ -102,7 +110,12 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SplashScreenController />
-          <RootNavigator />
+          <View className="flex-1">
+            <OfflineBanner />
+            <View className="flex-1">
+              <RootNavigator />
+            </View>
+          </View>
           <StatusBar style="auto" />
         </AuthProvider>
       </QueryClientProvider>

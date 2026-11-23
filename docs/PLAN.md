@@ -149,6 +149,21 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 3. Full RTL pass, dark mode, empty/loading/error states everywhere, offline banner.
 4. Accessibility labels, app icon, splash screen.
 
+**Status:** done in code and tests; nothing here has been seen on a device. What changed:
+
+- **Assistant tab** (5th tab) on `POST /chat`: suggestion chips, a 500-character limit with a counter near it, a typing indicator, and a failed question that can be sent again without repeating it. A 503 (or any 5xx, or an empty answer) shows a translated "assistant unavailable" message, so English users never see the server's Arabic text; no connection and a rejected question have their own messages. The local server has no Gemini key, so its e2e suite covers the greeting and off-topic answers, the 500/501 boundary, a blank question and the real 503.
+- **About, FAQ and Privacy screens**, linked from Account. The FAQ and privacy text are written for the app, not copied from the web: editing exists here (and sends the listing back to review), photos are shrunk on the phone, the camera is only used when adding photos, and there is no Google sign-in. The privacy page links to the in-app Contact form instead of printing an email or phone (this repo is public).
+- **Offline banner** (`expo-network`): shown on an explicit "not connected" or "no internet" reading, never before the first reading.
+- **States:** every data screen already had loading, error and empty states. Two gaps closed: Home's "Most viewed" row was blank when empty, and the comments section vanished while loading or on error (now a spinner, or an error with Try again).
+- **Dark mode:** colors come from the shared tokens and `userInterfaceStyle: automatic`. A spinner and the input placeholder had hard-coded light-theme colors; they now follow the theme. Left as they are on purpose: the red heart and the white icons drawn over a dark photo scrim.
+- **RTL:** no style in the app uses physical left/right (the layout uses start/end and gaps), and the chevrons and send arrow flip with the layout direction. The new text screens set `text-left`, which React Native treats as "start". Older screens leave `textAlign` unset.
+- **Accessibility:** labels on the new controls; icon rows no longer speak their glyph; the loading spinner's label is translated (it was the English word "loading").
+- **Icon and splash:** the Expo template art is replaced with the Saknly mark from the web app (store icon, Android adaptive foreground/background/monochrome, splash, favicon).
+
+**To check on a device:** (1) whether Arabic text with no `textAlign` lands on the right on both platforms; if not, add `text-left` to `Text` app-wide. (2) The chat composer with the keyboard open (`KeyboardAvoidingView` has no Android behavior; Android relies on window resizing, and the tab bar hides while the keyboard is up). (3) The offline banner draws its own top inset and the screens below add theirs, so expect a double gap while offline. (4) The banner uses inverted colors, so in light mode it is dark under dark status-bar icons. (5) Splash size (`imageWidth` 140) and the adaptive icon crop. (6) If the device language is neither Arabic nor English the app shows Arabic text in a left-to-right layout (SDK 58 follows the device language for direction).
+
+**Needs your read:** the privacy text is now a second policy, adapted from the web one, with a new section, "device type" where the web says "browser", and the date 23 November 2026. Phase 7 planned to reuse the web policy URL for the stores; decide which is the real one.
+
 ### Phase 6: Admin (role `admin` only)
 
 The web app has a full admin area: analytics, properties approve/deny, users, agencies, inquiries, testimonials, contacts, and import properties. On mobile this comes **last** and is lighter: analytics, pending-property approve/deny, user status, inquiries and testimonial moderation. Bulk **import-properties** stays web only (file parsing with mammoth isn't a phone task) unless you want it.

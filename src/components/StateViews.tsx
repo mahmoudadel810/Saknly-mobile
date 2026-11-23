@@ -7,10 +7,11 @@ import { describeError } from '@/utils/errors';
 import { Button } from './Button';
 
 export function LoadingView() {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   return (
     <View className="flex-1 items-center justify-center py-10">
-      <ActivityIndicator color={colors.primary} accessibilityLabel="loading" />
+      <ActivityIndicator color={colors.primary} accessibilityLabel={t('common.loading')} />
     </View>
   );
 }
