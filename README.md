@@ -59,13 +59,19 @@ The auth e2e suite runs the app's own auth code through the whole flow: register
 
 How it works: the phone signs in with Google and gets an ID token; the app sends it to `POST /auth/google/mobile` on the server, which verifies it and answers like `/auth/login`. A Google email that already belongs to a password account is refused (the app says to sign in with the password), as on the website.
 
-To turn it on (the server and Google Cloud parts need your accounts):
+Set up (done 2026-11-23, see "Current setup" for what exists):
 
-1. **Server:** deploy Saknly-server with `POST /auth/google/mobile` (branch `feat/google-mobile-sign-in`). It needs `GOOGLE_CLIENT_ID` set to the web client's ID below. Other client IDs whose tokens it should accept go in `GOOGLE_MOBILE_CLIENT_IDS` (comma separated). It does not need the client secret.
-2. **Google Cloud** (project "Saknly"): create an **Android** OAuth client with package name `com.saknly.mobile` and the SHA-1 of the key that signs the build. EAS shows it with `eas credentials`; add the Play App Signing SHA-1 too for store builds. A missing SHA-1 shows up as a cancelled sign-in, not as an error.
-3. **App:** set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` to the **web** client's ID (the one that is the server's `GOOGLE_CLIENT_ID`; the token's audience is checked against it). For EAS builds, put it in the profile's `env` in `eas.json`, since EAS doesn't read your local `.env`. Then build a development build (`eas build --profile development --platform android`).
-4. **While the consent screen is in Testing**, only the listed test users can sign in. Publish the app (or add users) in Google Cloud to open it to everyone.
+1. **Server:** `POST /auth/google/mobile` is deployed. It accepts ID tokens whose audience is the server's `GOOGLE_CLIENT_ID` or any ID in `GOOGLE_MOBILE_CLIENT_IDS` (comma separated). It does not need a client secret.
+2. **Google Cloud:** the app's ID tokens are issued for a **web** OAuth client; the **Android** client (package `com.saknly.mobile` + the SHA-1 of the signing key) must be in the _same_ Google project. The consent screen must be **In production**, or only the listed test users can sign in. A wrong or missing SHA-1 shows up as a cancelled sign-in, not as an error.
+3. **App:** `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is the web client's ID. It is set in every profile of `eas.json` (EAS doesn't read your local `.env`); for `npm start` put it in `.env`. A **development build** is needed, not Expo Go.
+4. **Store builds:** when you publish to Google Play, add the **Play App Signing** SHA-1 (Play Console, Release, Setup, App signing) as another Android client in the same project, or sign-in fails for store installs.
 5. **iOS, later:** create an iOS OAuth client, then add `["@react-native-google-signin/google-signin", { "iosUrlScheme": "com.googleusercontent.apps.<id>" }]` to the plugins in `app.json` (the plugin refuses to build without it, which is why it isn't there yet; Android needs no plugin without Firebase).
+
+### Current setup
+
+- Google Cloud project **Saknly** (`saknly-463408`): consent screen **In production**; web client "Saknly" (`431560128258-uo934sf…`) is the one the app uses; Android client "Saknly Android" with the Expo-generated keystore's SHA-1.
+- The website's own Google login uses a **different** Google project (client `964610251855-…`, set as `GOOGLE_CLIENT_ID` on Vercel). It was left alone. The Saknly web client is added to the server as `GOOGLE_MOBILE_CLIENT_IDS`.
+- Expo project `@mahmoudadel810/saknly-mobile`; the Android keystore is stored on Expo's servers.
 
 ## Device flows (Maestro)
 

@@ -187,18 +187,18 @@ Done:
 
 Yours to do (each needs an account, a device or a decision):
 
-1. `npx eas-cli@latest login`, then `npx eas-cli@latest init` to link the project; commit the `projectId` it adds to `app.json`.
+1. ~~Link the project to Expo~~ Done: `@mahmoudadel810/saknly-mobile`, `projectId` in `app.json`.
 2. Build a preview APK (`eas build --profile preview --platform android`), install it, and check the device-only items listed under Phase 5 and Phase 2 to 4 above.
 3. The Phase 4 check against the **deployed** API: add a listing with 8 phone photos (it creates a real listing; delete it after).
 4. Run the Maestro flows against the local API on an emulator.
 5. Decide the **privacy policy URL** for the stores: the web page or the in-app text (they differ, see Phase 5), and host the one you pick at a public address.
-6. Google sign-in: the code is written (see Decision 1 below and the README's "Google sign-in"); turning it on needs the server deployed, an Android OAuth client with the app's SHA-1 from EAS, and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` in the build.
+6. Google sign-in: set up (see Decision 1 below and the README's "Google sign-in"). Left: install the development build on a phone and try it, and add the Play App Signing SHA-1 when the app goes on Google Play.
 7. Store listings (names, descriptions in Arabic and English, screenshots), a Google Play developer account, and for iOS an Apple Developer account.
 8. OTA updates need `expo-updates` (not installed) and `eas update:configure`; decide whether v1 wants them.
 
 ## 6. Decisions you need to make
 
-1. **Google sign-in.** **Decided: the recommended option, built (2026-11-23), not yet on a device.** Server: `POST /auth/google/mobile` in Saknly-server (branch `feat/google-mobile-sign-in`, not deployed). App: "Continue with Google" on the sign-in and register screens with `@react-native-google-signin/google-signin`, hidden until `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set. Tested with the Google verifier and the native module mocked; a real sign-in has never run. Not done: iOS (needs an Apple account and an iOS OAuth client), the Android OAuth client, and publishing the consent screen. The options considered were:
+1. **Google sign-in.** **Decided: the recommended option, built and set up (2026-11-23), not yet tried on a device.** Server: `POST /auth/google/mobile` in Saknly-server, merged to `main` and deployed to Vercel (the web client of the Saknly Google project is in `GOOGLE_MOBILE_CLIENT_IDS`; the website's own Google login uses a different Google project and was not touched). Google Cloud: consent screen published, Android client created with the Expo keystore's SHA-1. Expo project linked, client ID in every `eas.json` profile. App: "Continue with Google" on the sign-in and register screens with `@react-native-google-signin/google-signin`, hidden until `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set. Tested with the Google verifier and the native module mocked; a real sign-in has never run. Not done: iOS (needs an Apple account and an iOS OAuth client), the Play App Signing SHA-1 (needed once the app is on Google Play), and a real sign-in on a phone. The options considered were:
    - **(Recommended)** a small server addition, `POST /auth/google/mobile`, that verifies a Google ID token from `@react-native-google-signin/google-signin` and returns the same JWT as `login`. Existing endpoints don't change.
    - Add a `redirect` / `state` param so the callback can redirect to `saknly://login/success?token=` (allowlisted).
    - Ship v1 with email/password only.

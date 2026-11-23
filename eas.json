@@ -6,14 +6,27 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {
