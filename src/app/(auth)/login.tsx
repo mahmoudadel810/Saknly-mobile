@@ -10,6 +10,7 @@ import { setReturnTo } from '@/auth/returnTo';
 import { loginSchema } from '@/auth/schemas';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
+import { GoogleButton } from '@/components/GoogleButton';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { describeError } from '@/utils/errors';
@@ -93,6 +94,8 @@ export default function LoginScreen() {
         onPress={() => form.handleSubmit()}
         loading={form.isSubmitting}
       />
+
+      <GoogleButton redirect={redirect} onError={setError} />
 
       <View className="flex-row justify-center gap-1">
         <Text className="text-sm text-text-2">{t('auth.noAccount')}</Text>

@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter';
 import { api } from '@/api/client';
 import { HOUR, makeToken } from '@/test/jwt';
 
-import { endSession, restoreSession, startSession } from './session';
+import { endSession, restoreSession, startGoogleSession, startSession } from './session';
 import { tokenStorage } from './tokenStorage';
 
 const mock = new MockAdapter(api);
@@ -101,6 +101,35 @@ describe('startSession', () => {
   it('stores nothing when the email is not confirmed', async () => {
     mock.onPost('/auth/login').reply(403, { success: false, message: 'not confirmed' });
     await expect(startSession('mona@example.com', 'Secret1!')).rejects.toBeTruthy();
+    expect(await tokenStorage.get()).toBeNull();
+  });
+});
+
+describe('startGoogleSession', () => {
+  it('sends the ID token, stores the token the server issues and loads the full user', async () => {
+    const token = makeToken(20 * HOUR);
+    mock.onPost('/auth/google/mobile').reply(200, { success: true, message: 'ok', token, user });
+    mock.onGet('/auth/getMe').reply(200, meResponse);
+
+    const session = await startGoogleSession('google-id-token');
+
+    expect(JSON.parse(mock.history.post[0].data)).toEqual({ idToken: 'google-id-token' });
+    expect(session).toEqual({ token, user: meResponse.data.user });
+    expect(await tokenStorage.get()).toBe(token);
+  });
+
+  it('keeps the short user when getMe cannot be reached', async () => {
+    const token = makeToken(20 * HOUR);
+    mock.onPost('/auth/google/mobile').reply(200, { success: true, message: 'ok', token, user });
+    mock.onGet('/auth/getMe').networkError();
+
+    expect(await startGoogleSession('t')).toEqual({ token, user });
+  });
+
+  it('stores nothing when the server refuses the token', async () => {
+    mock.onPost('/auth/google/mobile').reply(401, { success: false, message: 'no' });
+
+    await expect(startGoogleSession('bad')).rejects.toMatchObject({ response: { status: 401 } });
     expect(await tokenStorage.get()).toBeNull();
   });
 });

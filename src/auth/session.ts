@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios';
 
 import { authApi } from '@/api/auth';
-import type { SessionUser, User } from '@/api/types';
+import type { SessionUser, TokenResponse, User } from '@/api/types';
 
 import { isTokenExpired, shouldRefreshToken } from './token';
 import { tokenStorage } from './tokenStorage';
@@ -54,8 +54,8 @@ export const restoreSession = async (): Promise<Session | null> => {
   }
 };
 
-export const startSession = async (email: string, password: string): Promise<Session> => {
-  const { token, user } = await authApi.login({ email, password });
+/** Stores a token the server just issued and loads the full user (the short one if that fails). */
+const beginSession = async ({ token, user }: TokenResponse): Promise<Session> => {
   await tokenStorage.set(token);
   try {
     return { token, user: await authApi.getMe(token) };
@@ -63,6 +63,13 @@ export const startSession = async (email: string, password: string): Promise<Ses
     return { token, user };
   }
 };
+
+export const startSession = async (email: string, password: string): Promise<Session> =>
+  beginSession(await authApi.login({ email, password }));
+
+/** Signs in with the ID token from Google's sign-in on the phone. */
+export const startGoogleSession = async (idToken: string): Promise<Session> =>
+  beginSession(await authApi.googleLogin(idToken));
 
 /** Ends the session on the server (best effort) and always clears it on the device. */
 export const endSession = async (token: string | null): Promise<void> => {
