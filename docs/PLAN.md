@@ -166,6 +166,8 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 
 ### Phase 6: Admin (role `admin` only)
 
+**Status: skipped (decision, 2026-11-23).** The mobile app has no admin screens; admins use the web app. An admin who signs in on mobile gets the normal app (Account shows the role "Admin"). The original idea is kept below in case it is revived.
+
 The web app has a full admin area: analytics, properties approve/deny, users, agencies, inquiries, testimonials, contacts, and import properties. On mobile this comes **last** and is lighter: analytics, pending-property approve/deny, user status, inquiries and testimonial moderation. Bulk **import-properties** stays web only (file parsing with mammoth isn't a phone task) unless you want it.
 
 ### Phase 7: Testing and release
@@ -175,13 +177,32 @@ The web app has a full admin area: analytics, properties approve/deny, users, ag
 3. EAS Build: Android APK/AAB, iOS through EAS cloud builds. This machine is Linux, so iOS needs an Apple Developer account and a real device or TestFlight.
 4. Store listings, privacy policy URL (reuse the web page), version and OTA updates through EAS Update.
 
+**Status:** the parts that don't need your accounts or a device are done; the rest is a checklist for you.
+
+Done:
+
+- Unit and screen tests cover the API client, token refresh, the photo budget and every phase's screens (165), plus 43 e2e tests against a real local server.
+- Three Maestro flows in `.maestro/` (sign in + favorite, browse signed out, assistant), with a test that keeps their labels in sync with the English strings. **Not run:** no emulator here. The first run on a device will probably need small selector fixes. Register and upload aren't in them (see the README).
+- `ITSAppUsesNonExemptEncryption: false` in `app.json`, so App Store Connect doesn't ask the export-compliance question on every upload.
+
+Yours to do (each needs an account, a device or a decision):
+
+1. `npx eas-cli@latest login`, then `npx eas-cli@latest init` to link the project; commit the `projectId` it adds to `app.json`.
+2. Build a preview APK (`eas build --profile preview --platform android`), install it, and check the device-only items listed under Phase 5 and Phase 2 to 4 above.
+3. The Phase 4 check against the **deployed** API: add a listing with 8 phone photos (it creates a real listing; delete it after).
+4. Run the Maestro flows against the local API on an emulator.
+5. Decide the **privacy policy URL** for the stores: the web page or the in-app text (they differ, see Phase 5), and host the one you pick at a public address.
+6. Google sign-in (Decision 1), if you want it in v1: needs the server's `POST /auth/google/mobile` and an Android OAuth client with the app's SHA-1 from EAS.
+7. Store listings (names, descriptions in Arabic and English, screenshots), a Google Play developer account, and for iOS an Apple Developer account.
+8. OTA updates need `expo-updates` (not installed) and `eas update:configure`; decide whether v1 wants them.
+
 ## 6. Decisions you need to make
 
 1. **Google sign-in.** The callback only redirects to the web app. Options:
    - **(Recommended)** a small server addition, `POST /auth/google/mobile`, that verifies a Google ID token from `@react-native-google-signin/google-signin` and returns the same JWT as `login`. Existing endpoints don't change.
    - Add a `redirect` / `state` param so the callback can redirect to `saknly://login/success?token=` (allowlisted).
    - Ship v1 with email/password only.
-2. **Admin on mobile:** the light version in Phase 6 (recommended), the full version, or none.
+2. **Admin on mobile:** decided: none (Phase 6 skipped).
 3. **Deep links for the email links** (`saknly://` + Android App Links / iOS Universal Links on the web domain): optional, can wait until after v1.
 
 ## 7. Risks

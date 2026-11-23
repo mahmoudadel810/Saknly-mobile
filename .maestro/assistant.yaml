@@ -1,0 +1,15 @@
+# Ask the assistant. A greeting is answered by the server itself, so it works without a Gemini key.
+# Same setup as signed-in-wishlist.yaml.
+appId: com.saknly.mobile
+---
+- launchApp:
+    clearState: true
+- tapOn: 'Assistant'
+- assertVisible: 'How can I help?'
+- tapOn: 'Your question'
+- inputText: 'hello'
+- tapOn: 'Send question'
+- assertVisible: 'You: hello'
+- extendedWaitUntil:
+    visible: 'Assistant: .*'
+    timeout: 20000

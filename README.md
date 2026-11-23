@@ -51,6 +51,18 @@ EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/saknly/v1 npm run test:e2e  # term
 
 The auth e2e suite runs the app's own auth code through the whole flow: register, confirm by the emailed link, log in, restore after restart, refresh, log out (token revoked), and reset the password with the emailed code. Captured emails are at `http://127.0.0.1:5056/mail`.
 
+## Device flows (Maestro)
+
+`.maestro/` holds three flows (sign in and favorite, browse signed out, ask the assistant). They drive the app by its on-screen text, so they need an **English** device or emulator, and they sign in as a seeded demo user, so run them against the local API, never the deployed one.
+
+```bash
+MEDIA_HOST=10.0.2.2 npm run local-api    # terminal 1
+# .env: EXPO_PUBLIC_API_URL=http://10.0.2.2:5055/api/saknly/v1, then build/install the app on the emulator
+maestro test .maestro                    # terminal 2 (https://maestro.mobile.dev)
+```
+
+`npm test` includes a check that every label the flows tap or assert still exists in the English strings. The flows themselves have **not been run yet** (no emulator on the machine they were written on). Register, email confirmation and photo upload are not in the flows: the first two need a real inbox, and picking photos needs images on the device.
+
 ## Builds (Expo Services / EAS)
 
 Profiles are in `eas.json`: `development` (dev client APK), `preview` (installable APK), `production` (store build).

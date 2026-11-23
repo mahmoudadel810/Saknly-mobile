@@ -1,0 +1,36 @@
+# Sign in as a seeded demo user, favorite a listing, see it in the Wishlist, undo.
+# Run against the local API (see README): MEDIA_HOST=10.0.2.2 npm run local-api, with
+# EXPO_PUBLIC_API_URL=http://10.0.2.2:5055/api/saknly/v1. Needs an English-language device.
+appId: com.saknly.mobile
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Welcome to Saknly'
+- tapOn: 'Account'
+- tapOn: 'Sign in'
+- tapOn: 'Email'
+- inputText: 'mona.adel@saknly.example.com'
+- tapOn: 'Password'
+- inputText: 'LocalDemo1!'
+- hideKeyboard
+- tapOn:
+    id: 'login-submit'
+- tapOn: 'Account'
+- assertVisible: 'My account'
+
+# Favorite the first listing on the Properties tab.
+- tapOn: 'Properties'
+- tapOn:
+    text: 'Add to wishlist'
+    index: 0
+- assertVisible: 'Remove from wishlist'
+- tapOn: 'Wishlist'
+- assertNotVisible: "You haven't saved any properties yet."
+
+# Undo, so the demo account is left as it was.
+- tapOn:
+    text: 'Remove from wishlist'
+    index: 0
+- tapOn: 'Account'
+- tapOn: 'Sign out'
+- assertVisible: 'Sign in to Saknly'

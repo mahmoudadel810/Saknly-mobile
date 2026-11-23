@@ -8,6 +8,8 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'link';
   loading?: boolean;
   disabled?: boolean;
+  /** A stable handle for end-to-end flows when the label is not unique on the screen. */
+  testID?: string;
 }
 
 const containerClass = {
@@ -28,11 +30,13 @@ export function Button({
   variant = 'primary',
   loading = false,
   disabled = false,
+  testID,
 }: ButtonProps) {
   const colors = useThemeColors();
   const inactive = disabled || loading;
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
