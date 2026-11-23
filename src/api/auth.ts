@@ -21,6 +21,10 @@ export const authApi = {
 
   login: async (input: LoginInput) => (await api.post<TokenResponse>(`${AUTH}/login`, input)).data,
 
+  /** Signs in (or up) with the ID token the phone got from Google; answers like `login`. */
+  googleLogin: async (idToken: string) =>
+    (await api.post<TokenResponse>(`${AUTH}/google/mobile`, { idToken })).data,
+
   /** Pass a token to check one that isn't the client's current token yet. */
   getMe: async (token?: string): Promise<User> => {
     const headers = token ? authHeader(token) : undefined;

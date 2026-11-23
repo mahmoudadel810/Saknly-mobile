@@ -30,6 +30,12 @@ export const en: Strings<typeof ar> = {
     forgotPassword: 'Forgot password?',
     noAccount: "Don't have an account?",
     haveAccount: 'Already have an account?',
+    or: 'or',
+    continueWithGoogle: 'Continue with Google',
+    googleFailed: "Couldn't sign in with Google. Please try again.",
+    googleEmailRegistered:
+      'This email is registered with a password. Sign in with your email and password instead.',
+    googlePlayServices: 'Google Play services are missing or need an update on this phone.',
     registerTitle: 'Create account',
     registerButton: 'Create account',
     firstName: 'First name',
@@ -380,7 +386,7 @@ export const en: Strings<typeof ar> = {
           title: 'What we collect',
           paragraphs: [],
           bullets: [
-            'Your account details: username, email, phone number and address. Your password is stored encrypted and cannot be read.',
+            'Your account details: username, email, phone number and address. Your password is stored encrypted and cannot be read. If you sign in with Google, we get your name and email from Google.',
             'Your listings: property details, photos, location and the contact details you write in the listing.',
             'What you send us: "Contact us" messages, your comments on properties, your inquiries and your questions to the Saknly assistant.',
             "Technical data: IP address and device type in server logs. The app keeps your sign-in token in the phone's secure storage.",

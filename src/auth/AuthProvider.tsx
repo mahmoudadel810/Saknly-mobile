@@ -15,7 +15,15 @@ import { AppState } from 'react-native';
 import { authApi } from '@/api/auth';
 import { setApiToken, setUnauthorizedHandler } from '@/api/client';
 
-import { endSession, refreshIfNeeded, restoreSession, type Session, startSession } from './session';
+import { clearGoogleAccount } from './google';
+import {
+  endSession,
+  refreshIfNeeded,
+  restoreSession,
+  type Session,
+  startGoogleSession,
+  startSession,
+} from './session';
 import { tokenStorage } from './tokenStorage';
 
 type AuthStatus = 'loading' | 'signedOut' | 'signedIn';
@@ -25,6 +33,8 @@ interface AuthContextValue {
   user: Session['user'];
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Signs in with the ID token Google's account picker returned. */
+  signInWithGoogle: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   reloadUser: () => Promise<void>;
 }
@@ -93,8 +103,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     [applySession],
   );
 
+  const signInWithGoogle = useCallback(
+    async (idToken: string) => applySession(await startGoogleSession(idToken)),
+    [applySession],
+  );
+
   const signOut = useCallback(async () => {
     await endSession(tokenRef.current);
+    // So the next "Continue with Google" shows the account picker instead of reusing this account.
+    await clearGoogleAccount();
     applySession(null);
     queryClient.clear();
   }, [applySession, queryClient]);
@@ -104,8 +121,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, isAdmin: user?.role === 'admin', signIn, signOut, reloadUser }),
-    [status, user, signIn, signOut, reloadUser],
+    () => ({
+      status,
+      user,
+      isAdmin: user?.role === 'admin',
+      signIn,
+      signInWithGoogle,
+      signOut,
+      reloadUser,
+    }),
+    [status, user, signIn, signInWithGoogle, signOut, reloadUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

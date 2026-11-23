@@ -152,7 +152,7 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 **Status:** done in code and tests; nothing here has been seen on a device. What changed:
 
 - **Assistant tab** (5th tab) on `POST /chat`: suggestion chips, a 500-character limit with a counter near it, a typing indicator, and a failed question that can be sent again without repeating it. A 503 (or any 5xx, or an empty answer) shows a translated "assistant unavailable" message, so English users never see the server's Arabic text; no connection and a rejected question have their own messages. The local server has no Gemini key, so its e2e suite covers the greeting and off-topic answers, the 500/501 boundary, a blank question and the real 503.
-- **About, FAQ and Privacy screens**, linked from Account. The FAQ and privacy text are written for the app, not copied from the web: editing exists here (and sends the listing back to review), photos are shrunk on the phone, the camera is only used when adding photos, and there is no Google sign-in. The privacy page links to the in-app Contact form instead of printing an email or phone (this repo is public).
+- **About, FAQ and Privacy screens**, linked from Account. The FAQ and privacy text are written for the app, not copied from the web: editing exists here (and sends the listing back to review), photos are shrunk on the phone, and the camera is only used when adding photos. (Google sign-in was added after this phase; the privacy text mentions it, and the FAQ doesn't need to.) The privacy page links to the in-app Contact form instead of printing an email or phone (this repo is public).
 - **Offline banner** (`expo-network`): shown on an explicit "not connected" or "no internet" reading, never before the first reading.
 - **States:** every data screen already had loading, error and empty states. Two gaps closed: Home's "Most viewed" row was blank when empty, and the comments section vanished while loading or on error (now a spinner, or an error with Try again).
 - **Dark mode:** colors come from the shared tokens and `userInterfaceStyle: automatic`. A spinner and the input placeholder had hard-coded light-theme colors; they now follow the theme. Left as they are on purpose: the red heart and the white icons drawn over a dark photo scrim.
@@ -192,13 +192,13 @@ Yours to do (each needs an account, a device or a decision):
 3. The Phase 4 check against the **deployed** API: add a listing with 8 phone photos (it creates a real listing; delete it after).
 4. Run the Maestro flows against the local API on an emulator.
 5. Decide the **privacy policy URL** for the stores: the web page or the in-app text (they differ, see Phase 5), and host the one you pick at a public address.
-6. Google sign-in (Decision 1), if you want it in v1: needs the server's `POST /auth/google/mobile` and an Android OAuth client with the app's SHA-1 from EAS.
+6. Google sign-in: the code is written (see Decision 1 below and the README's "Google sign-in"); turning it on needs the server deployed, an Android OAuth client with the app's SHA-1 from EAS, and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` in the build.
 7. Store listings (names, descriptions in Arabic and English, screenshots), a Google Play developer account, and for iOS an Apple Developer account.
 8. OTA updates need `expo-updates` (not installed) and `eas update:configure`; decide whether v1 wants them.
 
 ## 6. Decisions you need to make
 
-1. **Google sign-in.** The callback only redirects to the web app. Options:
+1. **Google sign-in.** **Decided: the recommended option, built (2026-11-23), not yet on a device.** Server: `POST /auth/google/mobile` in Saknly-server (branch `feat/google-mobile-sign-in`, not deployed). App: "Continue with Google" on the sign-in and register screens with `@react-native-google-signin/google-signin`, hidden until `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set. Tested with the Google verifier and the native module mocked; a real sign-in has never run. Not done: iOS (needs an Apple account and an iOS OAuth client), the Android OAuth client, and publishing the consent screen. The options considered were:
    - **(Recommended)** a small server addition, `POST /auth/google/mobile`, that verifies a Google ID token from `@react-native-google-signin/google-signin` and returns the same JWT as `login`. Existing endpoints don't change.
    - Add a `redirect` / `state` param so the callback can redirect to `saknly://login/success?token=` (allowlisted).
    - Ship v1 with email/password only.
