@@ -88,6 +88,7 @@ export default function LoginScreen() {
       </Link>
 
       <Button
+        testID="login-submit"
         title={t('auth.loginButton')}
         onPress={() => form.handleSubmit()}
         loading={form.isSubmitting}
