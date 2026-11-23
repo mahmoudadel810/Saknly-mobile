@@ -9,7 +9,7 @@ import type { Agency, Testimonial } from '@/api/browseTypes';
 import { useAuth } from '@/auth/AuthProvider';
 import { Chip } from '@/components/Chip';
 import { SectionHeader } from '@/components/SectionHeader';
-import { ErrorView, LoadingView } from '@/components/StateViews';
+import { EmptyView, ErrorView, LoadingView } from '@/components/StateViews';
 import type { ListingKind } from '@/features/properties/filters';
 import { PropertyCard } from '@/features/properties/PropertyCard';
 import {
@@ -57,6 +57,7 @@ export default function HomeScreen() {
           </Text>
           <Pressable
             accessibilityRole="search"
+            accessibilityLabel={t('browse.searchPlaceholder')}
             onPress={() => openList()}
             className="flex-row items-center gap-2 rounded-xl border border-border bg-field px-4 py-3"
           >
@@ -79,6 +80,8 @@ export default function HomeScreen() {
             <LoadingView />
           ) : featured.isError ? (
             <ErrorView error={featured.error} onRetry={() => featured.refetch()} />
+          ) : featured.data.length === 0 ? (
+            <EmptyView message={t('browse.noFeatured')} />
           ) : (
             <FlatList
               horizontal

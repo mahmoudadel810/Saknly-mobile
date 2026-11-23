@@ -62,6 +62,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="chat"
+        options={{
+          title: t('tabs.assistant'),
+          // The composer sits at the bottom: the tab bar would eat the space above the keyboard.
+          tabBarHideOnKeyboard: true,
+          tabBarIcon: (props: TabIconProps) => (
+            <TabIcon {...props} name="chatbubbles-outline" focusedName="chatbubbles" />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: t('tabs.account'),

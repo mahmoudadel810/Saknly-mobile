@@ -7,6 +7,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
+import { LinkRow } from '@/components/LinkRow';
 import { Screen } from '@/components/Screen';
 import { MyProperties } from '@/features/account/MyProperties';
 
@@ -15,21 +16,23 @@ export default function AccountScreen() {
   return status === 'signedIn' ? <SignedIn /> : <SignedOut />;
 }
 
-/** Contact and reviews work signed out too. */
+/** Contact, reviews and the info pages work signed out too. */
 function MoreLinks() {
   const { t } = useTranslation();
+  const links = [
+    { title: t('contact.title'), href: '/contact' },
+    { title: t('testimonial.title'), href: '/testimonial' },
+    { title: t('pages.about.title'), href: '/about' },
+    { title: t('pages.faq.title'), href: '/faq' },
+    { title: t('pages.privacy.title'), href: '/privacy' },
+  ] as const;
   return (
-    <View className="gap-3">
-      <Button
-        title={t('contact.title')}
-        variant="secondary"
-        onPress={() => router.push('/contact')}
-      />
-      <Button
-        title={t('testimonial.title')}
-        variant="secondary"
-        onPress={() => router.push('/testimonial')}
-      />
+    <View className="overflow-hidden rounded-2xl border border-border bg-surface">
+      {links.map((link, index) => (
+        <View key={link.href} className={index > 0 ? 'border-t border-border' : ''}>
+          <LinkRow title={link.title} onPress={() => router.push(link.href)} />
+        </View>
+      ))}
     </View>
   );
 }

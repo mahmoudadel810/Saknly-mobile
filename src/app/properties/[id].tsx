@@ -231,19 +231,31 @@ function Similar({ id }: { id: string }) {
 function Comments({ id, canComment }: { id: string; canComment: boolean }) {
   const { t } = useTranslation();
   const comments = usePropertyComments(id);
-  if (comments.isPending || comments.isError) return null;
   return (
     <Block title={t('property.comments')}>
-      {canComment ? <CommentComposer propertyId={id} /> : null}
-      {comments.data.length === 0 ? (
-        <Text className="text-sm text-muted">{t('property.noComments')}</Text>
+      {comments.isPending ? (
+        <LoadingView />
+      ) : comments.isError ? (
+        <ErrorView error={comments.error} onRetry={() => comments.refetch()} />
       ) : (
-        comments.data.map((comment) => (
-          <View key={comment._id} className="gap-1 rounded-xl border border-border bg-surface p-3">
-            <Text className="text-sm font-semibold text-text">{comment.user?.userName ?? '—'}</Text>
-            <Text className="text-base text-text">{comment.text}</Text>
-          </View>
-        ))
+        <>
+          {canComment ? <CommentComposer propertyId={id} /> : null}
+          {comments.data.length === 0 ? (
+            <Text className="text-sm text-muted">{t('property.noComments')}</Text>
+          ) : (
+            comments.data.map((comment) => (
+              <View
+                key={comment._id}
+                className="gap-1 rounded-xl border border-border bg-surface p-3"
+              >
+                <Text className="text-sm font-semibold text-text">
+                  {comment.user?.userName ?? '—'}
+                </Text>
+                <Text className="text-base text-text">{comment.text}</Text>
+              </View>
+            ))
+          )}
+        </>
       )}
     </Block>
   );

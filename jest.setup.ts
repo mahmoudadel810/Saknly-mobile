@@ -1,3 +1,8 @@
+// The phone's connectivity: online unless a test says otherwise (`useNetworkState.mockReturnValue`).
+jest.mock('expo-network', () => ({
+  useNetworkState: jest.fn(() => ({ isConnected: true, isInternetReachable: true })),
+}));
+
 // In-memory stand-in for the device keychain/keystore.
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>();
