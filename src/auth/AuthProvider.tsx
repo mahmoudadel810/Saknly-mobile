@@ -35,7 +35,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   /** Signs in with the ID token Google's account picker returned. */
   signInWithGoogle: (idToken: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  /** `{ remote: false }` skips POST /auth/logout, for a token the server already dropped. */
+  signOut: (options?: { remote?: boolean }) => Promise<void>;
   reloadUser: () => Promise<void>;
 }
 
@@ -108,13 +109,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     [applySession],
   );
 
-  const signOut = useCallback(async () => {
-    await endSession(tokenRef.current);
-    // So the next "Continue with Google" shows the account picker instead of reusing this account.
-    await clearGoogleAccount();
-    applySession(null);
-    queryClient.clear();
-  }, [applySession, queryClient]);
+  const signOut = useCallback(
+    async ({ remote = true }: { remote?: boolean } = {}) => {
+      await endSession(remote ? tokenRef.current : null);
+      // So the next "Continue with Google" shows the account picker instead of reusing this account.
+      await clearGoogleAccount();
+      applySession(null);
+      queryClient.clear();
+    },
+    [applySession, queryClient],
+  );
 
   const reloadUser = useCallback(async () => {
     if (tokenRef.current) setUser(await authApi.getMe(tokenRef.current));
