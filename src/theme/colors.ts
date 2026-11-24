@@ -13,6 +13,9 @@ const light = {
   bg: '#F7F6F3',
   field: '#F2F5F4',
   accent: '#C08A3E',
+  error: '#B42318',
+  success: '#1E7A46',
+  info: '#1F5F99',
 };
 
 const dark: typeof light = {
@@ -26,6 +29,9 @@ const dark: typeof light = {
   bg: '#0D1312',
   field: '#1B2422',
   accent: '#E0B36A',
+  error: '#F07A6E',
+  success: '#5CC48A',
+  info: '#7FB2E5',
 };
 
 export type ThemeColors = typeof light;

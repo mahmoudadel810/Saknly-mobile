@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, ScrollView, Text, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -9,6 +9,7 @@ import { TextField } from '@/components/TextField';
 import { citiesFor, GOVERNORATES, PROPERTY_TYPE_VALUES } from '@/constants/property';
 
 import { EMPTY_FILTERS, parsePrice, type PropertyFilters, SORT_VALUES } from './filters';
+import { Text } from '@/components/Text';
 
 const BEDROOMS = [1, 2, 3, 4, 5];
 
@@ -50,7 +51,7 @@ function SheetBody({ filters, onApply, onClose }: Omit<FilterSheetProps, 'visibl
   return (
     <SafeAreaView className="flex-1 bg-bg">
       <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
-        <Text accessibilityRole="header" className="text-xl font-bold text-text">
+        <Text accessibilityRole="header" className="text-xl text-text font-bold">
           {t('browse.filters')}
         </Text>
         <Button title={t('common.back')} variant="link" onPress={onClose} />
@@ -158,7 +159,7 @@ function SheetBody({ filters, onApply, onClose }: Omit<FilterSheetProps, 'visibl
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View className="gap-2">
-      <Text className="text-base font-semibold text-text">{title}</Text>
+      <Text className="text-base text-text font-semibold">{title}</Text>
       <View className="flex-row flex-wrap gap-2">{children}</View>
     </View>
   );

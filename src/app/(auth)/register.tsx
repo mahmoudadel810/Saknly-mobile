@@ -2,17 +2,19 @@ import { Link, router } from 'expo-router';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, type TextInputProps, View } from 'react-native';
+import { type TextInputProps, View } from 'react-native';
 
 import { authApi } from '@/api/auth';
 import type { RegisterInput } from '@/api/types';
 import { registerSchema } from '@/auth/schemas';
+import { AuthHeader } from '@/components/AuthHeader';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { describeError } from '@/utils/errors';
+import { Text } from '@/components/Text';
 
 type Field = keyof RegisterInput;
 
@@ -75,7 +77,7 @@ export default function RegisterScreen() {
 
   return (
     <Screen scroll>
-      <Text className="text-3xl font-bold text-text">{t('auth.registerTitle')}</Text>
+      <AuthHeader icon="person-add" title={t('auth.registerTitle')} />
       <FormMessage message={error} />
 
       {(Object.keys(fieldProps) as Field[]).map((name) => {
@@ -104,7 +106,7 @@ export default function RegisterScreen() {
       <View className="flex-row justify-center gap-1">
         <Text className="text-sm text-text-2">{t('auth.haveAccount')}</Text>
         <Link href="/login" replace asChild>
-          <Text className="text-sm font-semibold text-primary">{t('home.signIn')}</Text>
+          <Text className="text-sm text-primary font-semibold">{t('home.signIn')}</Text>
         </Link>
       </View>
     </Screen>

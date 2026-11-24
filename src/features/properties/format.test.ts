@@ -7,9 +7,10 @@ afterAll(() => i18n.changeLanguage('ar'));
 describe('in Arabic', () => {
   beforeAll(() => i18n.changeLanguage('ar'));
 
+  // Western digits, like the counts beside them (bedrooms, area), so one card never mixes two.
   it('formats sale and rent prices', () => {
-    expect(formatPrice({ price: 1250000, category: 'sale' })).toBe('١٬٢٥٠٬٠٠٠ ج.م');
-    expect(formatPrice({ price: 4500, category: 'rent' })).toBe('٤٬٥٠٠ ج.م / شهرياً');
+    expect(formatPrice({ price: 1250000, category: 'sale' })).toBe('1,250,000 ج.م');
+    expect(formatPrice({ price: 4500, category: 'rent' })).toBe('4,500 ج.م / شهرياً');
   });
 
   it('labels the status whether the server sent English or Arabic', () => {
@@ -18,9 +19,18 @@ describe('in Arabic', () => {
     expect(statusLabel('قيد المراجعة')).toBe('قيد المراجعة');
   });
 
-  it.each([0, 1, 2, 3, 11, 100])('shows a count of %i without a missing plural key', (count) => {
+  // Arabic has six plural forms: 0, 1, 2, 3–10, 11–99, 100+.
+  it.each([
+    [0, 'غرف', 'حمام'],
+    [1, 'غرفة', 'حمام'],
+    [2, 'غرفتان', 'حمامان'],
+    [3, 'غرف', 'حمامات'],
+    [11, 'غرفة', 'حمامًا'],
+    [100, 'غرفة', 'حمام'],
+  ])('shows a count of %i in the right plural form', (count, rooms, baths) => {
     expect(i18n.t('browse.results', { count })).toBe(`النتائج: ${count}`);
-    expect(i18n.t('property.bedrooms', { count })).toBe(`${count} غرف`);
+    expect(i18n.t('property.bedrooms', { count })).toBe(`${count} ${rooms}`);
+    expect(i18n.t('property.bathrooms', { count })).toBe(`${count} ${baths}`);
   });
 });
 

@@ -2,12 +2,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text } from 'react-native';
+
 import Toast from 'react-native-toast-message';
 
 import { authApi } from '@/api/auth';
 import type { ResetPasswordInput } from '@/api/types';
 import { resetPasswordSchema } from '@/auth/schemas';
+import { AuthHeader } from '@/components/AuthHeader';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { Screen } from '@/components/Screen';
@@ -45,8 +46,7 @@ export default function ResetPasswordScreen() {
 
   return (
     <Screen scroll>
-      <Text className="text-3xl font-bold text-text">{t('auth.resetTitle')}</Text>
-      <Text className="text-base text-text-2">{t('auth.resetBody')}</Text>
+      <AuthHeader icon="lock-closed" title={t('auth.resetTitle')} subtitle={t('auth.resetBody')} />
       <FormMessage message={error} />
       <TextField
         label={t('common.email')}

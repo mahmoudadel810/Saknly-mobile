@@ -3,7 +3,7 @@ import i18n from '@/i18n';
 
 /** "12,500 ج.م" / "EGP 12,500"; rent listings add "/month". */
 export const formatPrice = (property: Pick<Property, 'price' | 'category'>): string => {
-  const amount = new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-EG' : 'en-EG', {
+  const amount = new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-EG', {
     maximumFractionDigits: 0,
   }).format(property.price);
   const price = i18n.t('property.price', { amount });

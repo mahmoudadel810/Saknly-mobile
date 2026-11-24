@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 import type { PropertyImage } from '@/api/browseTypes';
@@ -18,6 +18,7 @@ import {
   preparePhoto,
   totalBytes,
 } from './photos';
+import { Text } from '@/components/Text';
 
 const mb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 

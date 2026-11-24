@@ -1,9 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text } from 'react-native';
 
 import { authApi } from '@/api/auth';
+import { AuthHeader } from '@/components/AuthHeader';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { Screen } from '@/components/Screen';
@@ -32,8 +32,11 @@ export default function CheckEmailScreen() {
 
   return (
     <Screen>
-      <Text className="text-3xl font-bold text-text">{t('auth.checkEmailTitle')}</Text>
-      <Text className="text-base leading-6 text-text-2">{t('auth.checkEmailBody', { email })}</Text>
+      <AuthHeader
+        icon="mail-open"
+        title={t('auth.checkEmailTitle')}
+        subtitle={t('auth.checkEmailBody', { email })}
+      />
       <FormMessage message={message?.text} tone={message?.tone} />
       <Button
         title={t('auth.resend')}

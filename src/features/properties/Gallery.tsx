@@ -1,10 +1,11 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Text, useWindowDimensions, View } from 'react-native';
+import { FlatList, useWindowDimensions, View } from 'react-native';
 
 import type { PropertyImage } from '@/api/browseTypes';
 import { useThemeColors } from '@/theme/colors';
+import { Text } from '@/components/Text';
 
 export function Gallery({ images }: { images: PropertyImage[] }) {
   const { t } = useTranslation();
@@ -38,11 +39,25 @@ export function Gallery({ images }: { images: PropertyImage[] }) {
           />
         )}
       />
+      {/* At the top: the summary card on the listing page overlaps the bottom of the photo. */}
       {images.length > 1 ? (
-        <View className="absolute bottom-3 end-3 rounded-full bg-black/60 px-3 py-1">
-          <Text className="text-xs font-semibold text-white">
+        <View className="absolute start-4 top-4 rounded-full bg-black/60 px-3 py-1">
+          <Text className="text-xs text-white font-semibold">
             {index + 1} / {images.length}
           </Text>
+        </View>
+      ) : null}
+      {images.length > 1 && images.length <= 10 ? (
+        <View
+          pointerEvents="none"
+          className="absolute inset-x-0 bottom-12 flex-row justify-center gap-1.5"
+        >
+          {images.map((image, i) => (
+            <View
+              key={image._id ?? i}
+              className={`h-1.5 rounded-full ${i === index ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`}
+            />
+          ))}
         </View>
       ) : null}
     </View>
