@@ -347,6 +347,17 @@ export const en: Strings<typeof ar> = {
     addUniversity: 'Add a university',
     removeUniversity: 'Remove university {{index}}',
     noDate: 'Not set',
+    pin: {
+      title: 'Map pin (optional)',
+      hint: 'At the property now? Save its spot so buyers can find it on the map.',
+      saved: 'The pin is saved. "Open in Maps" on your listing goes straight to it.',
+      use: "I'm at the property: use my location",
+      update: 'Move the pin to my location',
+      remove: 'Remove pin',
+      permission: 'Allow Saknly to use your location in the phone settings.',
+      outsideEgypt: "Your location is outside Egypt, so it wasn't saved.",
+      failed: "Couldn't get your location. Turn on location services and try again.",
+    },
     year: 'Year',
     month: 'Month',
     fixErrors: 'Check the fields marked in red.',
@@ -491,7 +502,7 @@ export const en: Strings<typeof ar> = {
     },
     privacy: {
       title: 'Privacy policy',
-      updated: 'Last updated: 23 November 2026',
+      updated: 'Last updated: 24 November 2026',
       sections: [
         {
           title: 'What we collect',
@@ -507,6 +518,13 @@ export const en: Strings<typeof ar> = {
           title: 'Camera and photos',
           paragraphs: [
             'The app only reaches the camera or your photos when you choose to add photos to a listing. It shrinks the photos you pick on your phone and uploads them with the listing only. It does not read any others.',
+          ],
+          bullets: [],
+        },
+        {
+          title: 'Location',
+          paragraphs: [
+            'The app reads your location only when you tap "use my location" while adding or editing a listing, and only to save that spot as the property\'s map pin. The pin is stored with the listing and shown to everyone who opens it. The app never reads your location in the background or at any other time.',
           ],
           bullets: [],
         },
@@ -551,6 +569,7 @@ export const en: Strings<typeof ar> = {
   settings: {
     title: 'Settings',
     language: 'App language',
+    deviceLanguage: 'Phone language',
     notifications: 'Notifications',
   },
   units: {

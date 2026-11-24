@@ -6,7 +6,7 @@ import { AppState, Platform, Pressable, View } from 'react-native';
 
 import { Text } from '@/components/Text';
 import { setAppLanguage } from '@/i18n/direction';
-import type { Language } from '@/i18n/preference';
+import { type Language, type LanguageChoice, readChoice } from '@/i18n/preference';
 import {
   getNotificationAccess,
   type NotificationAccess,
@@ -53,12 +53,19 @@ function RowIcon({ name }: { name: keyof typeof Ionicons.glyphMap }) {
 }
 
 function LanguageRow() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const [choice, setChoice] = useState<LanguageChoice>(readChoice);
   const [switching, setSwitching] = useState(false);
+  // "Phone language" is named in the current language: it isn't one language to read back.
+  const options: { code: LanguageChoice; label: string; lang?: Language }[] = [
+    { code: 'device', label: t('settings.deviceLanguage') },
+    ...LANGUAGES.map(({ code, label }) => ({ code, label, lang: code })),
+  ];
 
-  const choose = async (code: Language) => {
-    if (code === i18n.language || switching) return;
+  const choose = async (code: LanguageChoice) => {
+    if (code === choice || switching) return;
     haptics.select();
+    setChoice(code);
     setSwitching(true);
     try {
       // May reload the app (the layout direction flips), so nothing after this is guaranteed.
@@ -77,14 +84,14 @@ function LanguageRow() {
         </Text>
       </View>
       <View accessibilityRole="radiogroup" className="flex-row gap-1 rounded-xl bg-field p-1">
-        {LANGUAGES.map(({ code, label }) => {
-          const selected = i18n.language === code;
+        {options.map(({ code, label, lang }) => {
+          const selected = choice === code;
           return (
             <Pressable
               key={code}
               accessibilityRole="radio"
               accessibilityState={{ selected, disabled: switching }}
-              accessibilityLanguage={code}
+              accessibilityLanguage={lang}
               onPress={() => choose(code)}
               className={`flex-1 items-center rounded-lg py-2.5 ${
                 selected ? 'bg-surface shadow-sm' : 'active:bg-surface-2'

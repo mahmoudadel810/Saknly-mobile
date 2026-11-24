@@ -1,6 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 
 export type Language = 'ar' | 'en';
+/** A language, or "follow the phone's language" (re-read on every start). */
+export type LanguageChoice = Language | 'device';
 
 const KEY = 'saknly.language';
 
@@ -17,9 +19,12 @@ export const readLanguage = (): Language | null => {
   }
 };
 
-export const saveLanguage = (language: Language): void => {
+export const readChoice = (): LanguageChoice => readLanguage() ?? 'device';
+
+/** Saves the choice; "device" is stored as is (SecureStore has no synchronous delete). */
+export const saveChoice = (choice: LanguageChoice): void => {
   try {
-    SecureStore.setItem(KEY, language);
+    SecureStore.setItem(KEY, choice);
   } catch {
     // Not saved: the app follows the device language again on the next start.
   }

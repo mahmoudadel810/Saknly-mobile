@@ -2,8 +2,8 @@ import { reloadAppAsync } from 'expo';
 import * as SecureStore from 'expo-secure-store';
 import { I18nManager, Platform } from 'react-native';
 
-import i18n from './index';
-import { type Language, saveLanguage } from './preference';
+import i18n, { deviceLanguage } from './index';
+import { type LanguageChoice, saveChoice } from './preference';
 
 /**
  * Sets the native layout direction for a language. React Native reads it once at start, so it
@@ -51,8 +51,9 @@ const reload = (language: string, reason: string) => {
 };
 
 /** Switches the app language; reloads the app when the layout direction has to flip. */
-export const setAppLanguage = async (language: Language): Promise<void> => {
-  saveLanguage(language);
+export const setAppLanguage = async (choice: LanguageChoice): Promise<void> => {
+  saveChoice(choice);
+  const language = choice === 'device' ? deviceLanguage() : choice;
   await i18n.changeLanguage(language);
   if (applyDirection(language)) reload(language, 'language changed');
 };

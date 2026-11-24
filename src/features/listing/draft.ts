@@ -20,6 +20,9 @@ export interface ListingDraft {
   city: string;
   district: string;
   address: string;
+  /** The map pin, decimal degrees as strings; both empty for none. */
+  latitude: string;
+  longitude: string;
   floor: string;
   totalFloors: string;
   amenities: string[];
@@ -76,6 +79,8 @@ export const EMPTY_DRAFT: ListingDraft = {
   city: '',
   district: '',
   address: '',
+  latitude: '',
+  longitude: '',
   floor: '',
   totalFloors: '',
   amenities: [],
@@ -329,6 +334,10 @@ export const toListingFields = (draft: ListingDraft): [string, string][] => {
     'location[address]',
     draft.address.trim() || [draft.district.trim(), draft.city].filter(Boolean).join('، '),
   );
+  if (draft.latitude && draft.longitude) {
+    add('location[latitude]', draft.latitude);
+    add('location[longitude]', draft.longitude);
+  }
   add('floor', draft.floor);
   add('totalFloors', draft.totalFloors);
   add('contactInfo[name]', draft.contactName);
@@ -400,6 +409,8 @@ export const draftFromProperty = (p: Property): ListingDraft => ({
   city: p.location.city,
   district: text(p.location.district),
   address: text(p.location.address),
+  latitude: text(p.location.latitude),
+  longitude: text(p.location.longitude),
   floor: text(p.floor),
   totalFloors: text(p.totalFloors),
   amenities: (p.amenities ?? []).filter((a) => (AMENITIES as readonly string[]).includes(a)),

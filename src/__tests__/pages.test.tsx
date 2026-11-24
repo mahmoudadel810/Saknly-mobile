@@ -76,13 +76,14 @@ describe('info pages', () => {
     expect(await screen.findByLabelText('Subject')).toBeTruthy();
   });
 
-  it('opens the privacy policy, including what the app does with the camera', async () => {
+  it('opens the privacy policy, including what the app does with the camera and location', async () => {
     await renderApp('/account');
     await fireEvent.press(await screen.findByRole('button', { name: 'Privacy policy' }));
 
     expect(await screen.findByText('What we collect')).toBeTruthy();
     expect(screen.getByText('Camera and photos')).toBeTruthy();
-    expect(screen.getByText('Last updated: 23 November 2026')).toBeTruthy();
+    expect(screen.getByText('Location')).toBeTruthy();
+    expect(screen.getByText('Last updated: 24 November 2026')).toBeTruthy();
   });
 
   it('shows the pages in Arabic when that is the language', async () => {
