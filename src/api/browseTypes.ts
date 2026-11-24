@@ -18,6 +18,9 @@ export interface PersonRef {
   phone?: string;
 }
 
+export type PaymentMethod = 'cash' | 'installment' | 'cashOrInstallment';
+export type Semester = 'fall' | 'spring' | 'summer' | 'academic-year' | 'full-year';
+
 export interface Property {
   _id: string;
   title: string;
@@ -55,16 +58,30 @@ export interface Property {
   isActive?: boolean;
   contactInfo?: { name: string; phone: string; email?: string; whatsapp?: string };
   isNegotiable?: boolean;
+  /** Sale listings. Dates are ISO strings. */
+  paymentMethod?: PaymentMethod;
+  downPayment?: number;
+  installmentPeriodInYears?: number;
+  minInstallmentAmount?: number;
+  ownershipType?: 'firstOwner' | 'resale';
+  propertyStatus?: 'ready' | 'underConstruction';
+  deliveryDate?: string | null;
+  deliveryTerms?: string;
   /** Rent and student listings. */
   leaseDuration?: number;
   deposit?: number;
+  availableFrom?: string | null;
+  utilities?: { included?: boolean; cost?: number; details?: string };
+  rules?: { pets?: boolean; parties?: boolean; other?: string };
   isStudentFriendly?: boolean;
   studentHousingDetails?: {
     isEnabled?: boolean;
     roomType?: 'private' | 'shared' | 'dormitory' | null;
     studentsPerRoom?: number;
     genderPolicy?: 'male' | 'female' | 'mixed' | null;
-    nearbyUniversities?: { name: string; distanceInKm?: number }[];
+    nearbyUniversities?: { name?: string; distanceInKm?: number }[];
+    academicYearOnly?: boolean;
+    semester?: Semester | null;
   };
   createdAt: string;
 }

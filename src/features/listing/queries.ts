@@ -29,8 +29,10 @@ export const useCreateListing = () => {
 export const useUpdateListing = (id: string) => {
   const refresh = useRefreshListings();
   return useMutation({
-    mutationFn: ({ draft, kept, removed, photos, onProgress }: ListingSubmit) =>
-      listingsApi.update(id, updateBody(draft, kept, removed, photos), { onProgress }),
+    mutationFn: ({ draft, kept, removed, photos, coverIsNew, onProgress }: ListingSubmit) =>
+      listingsApi.update(id, updateBody(draft, kept, removed, photos, coverIsNew), {
+        onProgress,
+      }),
     onSuccess: refresh,
   });
 };

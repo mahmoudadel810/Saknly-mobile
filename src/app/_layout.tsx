@@ -6,19 +6,19 @@ import { type Href, router, SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { shouldRetry } from '@/api/client';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { takeReturnTo } from '@/auth/returnTo';
-import { OfflineBanner } from '@/components/OfflineBanner';
+import { OfflineBoundary } from '@/components/OfflineBanner';
 import { syncDirectionOnStart } from '@/i18n/direction';
 import { useNotificationRouting } from '@/notifications';
 import { NotificationPrimer } from '@/notifications/NotificationPrimer';
 import { useThemeColors } from '@/theme/colors';
 import { fonts } from '@/theme/fonts';
+import { useAppFonts } from '@/theme/useAppFonts';
 
 SplashScreen.preventAutoHideAsync();
 // Before the first render: a language whose direction doesn't match the running layout reloads
@@ -28,12 +28,13 @@ syncDirectionOnStart();
 // Where a blocked route (a guard turning false) sends the user.
 export const unstable_settings = { anchor: '(tabs)' };
 
-// The splash screen stays up until the stored session is restored.
+// The splash screen stays up until the stored session is restored and the app font is ready.
 function SplashScreenController() {
   const { status } = useAuth();
+  const fontsReady = useAppFonts();
   useEffect(() => {
-    if (status !== 'loading') SplashScreen.hide();
-  }, [status]);
+    if (status !== 'loading' && fontsReady) SplashScreen.hide();
+  }, [status, fontsReady]);
   return null;
 }
 
@@ -118,12 +119,9 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SplashScreenController />
-          <View className="flex-1">
-            <OfflineBanner />
-            <View className="flex-1">
-              <RootNavigator />
-            </View>
-          </View>
+          <OfflineBoundary>
+            <RootNavigator />
+          </OfflineBoundary>
           <StatusBar style="auto" />
           <NotificationPrimer />
         </AuthProvider>
