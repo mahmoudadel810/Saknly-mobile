@@ -22,6 +22,7 @@ import {
 } from './draft';
 import { clearedFields, removedImages, toPhotoUpdateFields } from './formData';
 import { inEgypt, toCoordinate } from './pin';
+import { areaOf } from './place';
 
 const base: ListingDraft = {
   ...EMPTY_DRAFT,
@@ -342,6 +343,38 @@ describe('fields emptied on an edit', () => {
       ['clear[]', 'studentHousingDetails.semester'],
       ['clear[]', 'studentHousingDetails.nearbyUniversities'],
     ]);
+  });
+});
+
+describe('a GeoLink place in the form', () => {
+  const place = (governorate: string, district: string, address = '') => ({
+    name: 'x',
+    address,
+    latitude: 30,
+    longitude: 31,
+    governorate,
+    district,
+  });
+
+  it("picks the form's governorate and city from GeoLink's names", () => {
+    expect(areaOf(place('محافظة المنوفية', 'مركز شبين الكوم'))).toEqual({
+      governorate: 'المنوفية',
+      city: 'شبين الكوم',
+    });
+    expect(areaOf(place('محافظة القاهرة', 'قسم الزمالك'))).toEqual({
+      governorate: 'القاهرة',
+      city: 'الزمالك',
+    });
+    // the city from the address when the district doesn't name it; the longest name wins
+    expect(areaOf(place('محافظة القاهرة', 'قسم أول', 'شارع عباس العقاد، مدينة نصر'))).toEqual({
+      governorate: 'القاهرة',
+      city: 'مدينة نصر',
+    });
+    // spelling differences (أ/ا, ة/ه)
+    expect(areaOf(place('محافظه الاسكندريه', '')).governorate).toBe('الإسكندرية');
+    // nothing it can't place
+    expect(areaOf(place('Unknown', ''))).toEqual({});
+    expect(areaOf(place('محافظة المنوفية', 'مكان غير معروف')).city).toBeUndefined();
   });
 });
 

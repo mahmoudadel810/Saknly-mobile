@@ -341,3 +341,66 @@ describe('map pin', () => {
     );
   });
 });
+
+describe('finding the place', () => {
+  const geoPlace = {
+    name: 'بازار الجمهورية',
+    address: 'شارع الجمهورية، قسم شبين الكوم، المنوفية، مركز شبين الكوم',
+    latitude: 30.5520181,
+    longitude: 31.0121315,
+    governorate: 'محافظة المنوفية',
+    district: 'مركز شبين الكوم',
+  };
+
+  it('pins the listing from a search and fills in the place left empty', async () => {
+    mock.onGet('/geo/search').reply(200, { success: true, data: [geoPlace] });
+
+    await renderApp('/listing/new');
+    await type('Or find it by address or a landmark', 'شارع الجمهورية');
+    await press('Search');
+    await press(`${geoPlace.name}، ${geoPlace.address}`);
+
+    expect(await screen.findByRole('button', { name: 'Move the pin to my location' })).toBeTruthy();
+    expect(mock.history.get.find((r) => r.url === '/geo/search')?.params).toMatchObject({
+      query: 'شارع الجمهورية',
+      language: 'en',
+    });
+    // governorate and city chosen, the address filled in
+    expect(screen.getByRole('button', { name: 'المنوفية' }).props.accessibilityState).toMatchObject(
+      { selected: true },
+    );
+    expect(
+      screen.getByRole('button', { name: 'شبين الكوم' }).props.accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(screen.getByLabelText('Street address (optional)').props.value).toBe(geoPlace.address);
+  });
+
+  it("fills the address from the phone's location, without replacing a typed one", async () => {
+    mock.onGet('/geo/reverse').reply(200, { success: true, data: geoPlace });
+
+    await renderApp('/listing/new');
+    await press("I'm at the property: use my location");
+    await waitFor(() =>
+      expect(screen.getByLabelText('Street address (optional)').props.value).toBe(geoPlace.address),
+    );
+
+    await type('Street address (optional)', '12 شارع البحر');
+    await press('Move the pin to my location');
+    await waitFor(() =>
+      expect(mock.history.get.filter((r) => r.url === '/geo/reverse')).toHaveLength(2),
+    );
+    expect(screen.getByLabelText('Street address (optional)').props.value).toBe('12 شارع البحر');
+  });
+
+  it('says so when the search is unavailable or used too much', async () => {
+    mock.onGet('/geo/search').replyOnce(503).onGet('/geo/search').replyOnce(429);
+    await renderApp('/listing/new');
+    await type('Or find it by address or a landmark', 'شارع الجمهورية');
+    await press('Search');
+    expect(
+      await screen.findByText("Search isn't available right now. Try again later."),
+    ).toBeTruthy();
+    await press('Search');
+    expect(await screen.findByText('Too many searches. Try again in a few minutes.')).toBeTruthy();
+  });
+});

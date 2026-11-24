@@ -28,6 +28,7 @@ import {
 } from './draft';
 import { clearedFields, removedImages } from './formData';
 import { LocationPin } from './LocationPin';
+import { areaOf } from './place';
 import { MonthPicker, yearsFrom } from './MonthPicker';
 import { PhotoPicker } from './PhotoPicker';
 import type { LocalPhoto } from './photos';
@@ -487,10 +488,21 @@ export function ListingForm({
         <LocationPin
           latitude={v.latitude}
           longitude={v.longitude}
-          // One update, so the schema runs once for both.
-          onChange={(latitude, longitude) =>
-            form.setValues((values) => ({ ...values, latitude, longitude }))
-          }
+          // Field by field: Formik's setValues(fn) reads the last render's values, so two calls in
+          // a row (the pin, then its address) would undo each other. Validated once, at the end.
+          onChange={(latitude, longitude) => {
+            form.setFieldValue('latitude', latitude, false);
+            form.setFieldValue('longitude', longitude);
+          }}
+          // Only what the owner left empty: a typed address or a chosen city is never replaced.
+          onPlace={(place) => {
+            const { governorate, city } = areaOf(place);
+            const values = form.values;
+            const sameGovernorate = !values.governorate || values.governorate === governorate;
+            if (!values.governorate && governorate) set('governorate', governorate);
+            if (!values.city && city && sameGovernorate) set('city', city);
+            if (!values.address.trim()) set('address', place.address.slice(0, LIMITS.address));
+          }}
         />
       </Section>
 
