@@ -1,9 +1,10 @@
 import { reloadAppAsync } from 'expo';
 import * as SecureStore from 'expo-secure-store';
-import { I18nManager, Platform } from 'react-native';
+import { useEffect } from 'react';
+import { AppState, I18nManager, Platform } from 'react-native';
 
 import i18n, { deviceLanguage } from './index';
-import { type LanguageChoice, saveChoice } from './preference';
+import { type LanguageChoice, readChoice, saveChoice } from './preference';
 
 /**
  * Sets the native layout direction for a language. React Native reads it once at start, so it
@@ -71,3 +72,17 @@ export const syncDirectionOnStart = (): void => {
   if (readReloadMark() === directionOf(i18n.language)) return;
   reload(i18n.language, 'layout direction');
 };
+
+/**
+ * With "Phone language" chosen, a change of the phone's language made while the app was in the
+ * background applies when it comes back (Android keeps the process alive through the change).
+ */
+export function useFollowDeviceLanguage() {
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state !== 'active' || readChoice() !== 'device') return;
+      if (deviceLanguage() !== i18n.language) setAppLanguage('device').catch(() => {});
+    });
+    return () => subscription.remove();
+  }, []);
+}

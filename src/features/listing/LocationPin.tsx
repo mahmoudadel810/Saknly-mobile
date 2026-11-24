@@ -5,10 +5,26 @@ import { View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
-import { mapsUrl } from '@/features/properties/contact';
+import { coordinatesUrl } from '@/features/properties/contact';
 import { openLink } from '@/utils/openLink';
 
-import { inEgypt, toCoordinate } from './pin';
+import { inEgypt, LOCATE_TIMEOUT_MS, MAX_ERROR_METRES, toCoordinate } from './pin';
+
+/** The promise, or a rejection once the wait is over; the timer stops when it settles. */
+const withTimeout = <T,>(promise: Promise<T>) =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('location timeout')), LOCATE_TIMEOUT_MS);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 
 interface LocationPinProps {
   latitude: string;
@@ -38,9 +54,19 @@ export function LocationPin({ latitude, longitude, onChange, canRemove }: Locati
         setMessage(t('listing.pin.permission'));
         return;
       }
-      const { coords } = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      // "Approximate location" (Android) or Precise Location off (iOS) is kilometres out.
+      if (permission.android?.accuracy === 'coarse' || permission.ios?.accuracy === 'reduced') {
+        setMessage(t('listing.pin.approximate'));
+        return;
+      }
+      // GPS, once: Balanced is about 100 m, a block away. A fix that never comes times out.
+      const { coords } = await withTimeout(
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }),
+      );
+      if (coords.accuracy === null || coords.accuracy > MAX_ERROR_METRES) {
+        setMessage(t('listing.pin.imprecise'));
+        return;
+      }
       if (!inEgypt(coords.latitude, coords.longitude)) {
         setMessage(t('listing.pin.outsideEgypt'));
         return;
@@ -78,27 +104,17 @@ export function LocationPin({ latitude, longitude, onChange, canRemove }: Locati
             <Button
               title={t('property.openInMaps')}
               variant="link"
-              onPress={() =>
-                openLink(
-                  mapsUrl({
-                    location: {
-                      latitude: Number(latitude),
-                      longitude: Number(longitude),
-                      address: '',
-                      city: '',
-                      governorate: '',
-                    },
-                  }),
-                )
-              }
+              onPress={() => openLink(coordinatesUrl(Number(latitude), Number(longitude)))}
             />
           </View>
           {canRemove ? (
             <View className="flex-1">
+              {/* Not while locating: the fix arriving afterwards would put the pin back. */}
               <Button
                 title={t('listing.pin.remove')}
                 variant="link"
                 onPress={() => onChange('', '')}
+                disabled={locating}
               />
             </View>
           ) : null}

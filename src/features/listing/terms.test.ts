@@ -271,9 +271,32 @@ describe('the map pin', () => {
   });
 
   it('keeps pins inside Egypt, rounded to six decimals', () => {
-    expect(inEgypt(30.04, 31.23)).toBe(true); // Cairo
-    expect(inEgypt(22.34, 31.61)).toBe(true); // Abu Simbel
-    expect(inEgypt(51.5, -0.12)).toBe(false); // London
+    const inside: [string, number, number][] = [
+      ['Cairo', 30.04, 31.23],
+      ['Abu Simbel', 22.34, 31.61],
+      ['Alexandria', 31.2, 29.92],
+      ['Port Said', 31.26, 32.3],
+      ['Arish', 31.13, 33.8],
+      ['Sharm El Sheikh', 27.9, 34.33],
+      ['Hurghada', 27.26, 33.81],
+      ['Marsa Alam', 25.07, 34.89],
+      ['Siwa', 29.2, 25.52],
+    ];
+    const outside: [string, number, number][] = [
+      ['Gaza', 31.5, 34.45],
+      ['Eilat', 29.56, 34.95],
+      ['Aqaba', 29.53, 35.01],
+      ['Tabuk', 28.4, 36.6],
+      ['Wadi Halfa', 21.8, 31.35],
+      ['Benghazi', 32.1, 20.07],
+      ['London', 51.5, -0.12],
+    ];
+    inside.forEach(([place, lat, lng]) =>
+      expect([place, inEgypt(lat, lng)]).toEqual([place, true]),
+    );
+    outside.forEach(([place, lat, lng]) =>
+      expect([place, inEgypt(lat, lng)]).toEqual([place, false]),
+    );
     expect(toCoordinate(30.5591234567)).toBe('30.559123');
   });
 });

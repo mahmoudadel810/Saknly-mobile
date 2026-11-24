@@ -15,12 +15,17 @@ export const whatsAppUrl = (phone: string): string | null => {
 
 export const callUrl = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 
+const searchUrl = (query: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+/** A maps link straight to a pin. */
+export const coordinatesUrl = (latitude: number, longitude: number) =>
+  searchUrl(`${latitude},${longitude}`);
+
 /** A maps link that opens the native maps app (or the browser): the pin when known, else the address. */
 export const mapsUrl = ({ location }: Pick<Property, 'location'>): string => {
   const { latitude, longitude, address, city, governorate } = location;
-  const query =
-    typeof latitude === 'number' && typeof longitude === 'number'
-      ? `${latitude},${longitude}`
-      : [address, city, governorate, 'مصر'].filter(Boolean).join('، ');
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  return typeof latitude === 'number' && typeof longitude === 'number'
+    ? coordinatesUrl(latitude, longitude)
+    : searchUrl([address, city, governorate, 'مصر'].filter(Boolean).join('، '));
 };

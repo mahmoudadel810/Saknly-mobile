@@ -71,6 +71,8 @@ function LanguageRow() {
       // May reload the app (the layout direction flips), so nothing after this is guaranteed.
       await setAppLanguage(code);
     } finally {
+      // What was actually saved: a failed save shows the old choice again, as the next start will.
+      setChoice(readChoice());
       setSwitching(false);
     }
   };
