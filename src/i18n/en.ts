@@ -364,6 +364,7 @@ export const en: Strings<typeof ar> = {
       downPayment: 'Less than the price.',
       installmentYears: '1 to 30 years.',
       distance: '0 to 100 km.',
+      month: 'Pick a month too.',
     },
   },
   account: {
@@ -551,6 +552,20 @@ export const en: Strings<typeof ar> = {
     title: 'Settings',
     language: 'App language',
     notifications: 'Notifications',
+  },
+  units: {
+    months_zero: '{{count}} months',
+    months_one: '{{count}} month',
+    months_two: '{{count}} months',
+    months_few: '{{count}} months',
+    months_many: '{{count}} months',
+    months_other: '{{count}} months',
+    years_zero: '{{count}} years',
+    years_one: '{{count}} year',
+    years_two: '{{count}} years',
+    years_few: '{{count}} years',
+    years_many: '{{count}} years',
+    years_other: '{{count}} years',
   },
   dates: {
     months: [

@@ -163,10 +163,11 @@ export default function PropertyScreen() {
         {/* On every sale, as on the web: a cash listing can still be bought with a bank loan. */}
         {p.category === 'sale' && p.price > 0 ? (
           <Block title={t('property.calculator.title')} icon="calculator-outline">
+            {/* A cash sale may still hold an old plan (an edit can't clear it): start empty. */}
             <InstallmentCalculator
               price={p.price}
-              downPayment={p.downPayment}
-              years={p.installmentPeriodInYears}
+              downPayment={p.paymentMethod === 'cash' ? undefined : p.downPayment}
+              years={p.paymentMethod === 'cash' ? undefined : p.installmentPeriodInYears}
             />
           </Block>
         ) : null}

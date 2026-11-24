@@ -3,10 +3,7 @@ import i18n from '@/i18n';
 
 /** "12,500 ج.م" / "EGP 12,500"; rent listings add "/month". */
 export const formatPrice = (property: Pick<Property, 'price' | 'category'>): string => {
-  const amount = new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-EG', {
-    maximumFractionDigits: 0,
-  }).format(property.price);
-  const price = i18n.t('property.price', { amount });
+  const price = formatMoney(property.price);
   return property.category === 'sale' ? price : `${price} ${i18n.t('property.perMonth')}`;
 };
 
@@ -49,25 +46,9 @@ export const formatMoney = (amount: number): string =>
     }).format(amount),
   });
 
-/**
- * Counted units by hand, like the web: Arabic counts change the noun's form (1 شهر واحد,
- * 2 شهران, 3–10 أشهر, 11+ شهرًا), and English needs only one and many.
- */
-const counted =
-  (unit: 'month' | 'year') =>
-  (n: number): string => {
-    if (i18n.language !== 'ar') return `${n} ${unit}${n === 1 ? '' : 's'}`;
-    const [one, two, few, many] =
-      unit === 'month'
-        ? ['شهر واحد', 'شهران', 'أشهر', 'شهرًا']
-        : ['سنة واحدة', 'سنتان', 'سنوات', 'سنة'];
-    if (n === 1) return one;
-    if (n === 2) return two;
-    return `${n} ${n <= 10 ? few : many}`;
-  };
-
-export const monthsLabel = counted('month');
-export const yearsLabel = counted('year');
+/** "12 months" / "12 شهرًا": i18next picks the Arabic plural form (six of them) from the count. */
+export const monthsLabel = (count: number): string => i18n.t('units.months', { count });
+export const yearsLabel = (count: number): string => i18n.t('units.years', { count });
 
 /** "2028-03" -> "مارس 2028" / "March 2028". Names come from the strings, not Intl. */
 export const monthLabel = (month: string): string => {
