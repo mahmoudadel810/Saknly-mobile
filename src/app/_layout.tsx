@@ -13,7 +13,7 @@ import { shouldRetry } from '@/api/client';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { takeReturnTo } from '@/auth/returnTo';
 import { OfflineBoundary } from '@/components/OfflineBanner';
-import { syncDirectionOnStart } from '@/i18n/direction';
+import { syncDirectionOnStart, useFollowDeviceLanguage } from '@/i18n/direction';
 import { useNotificationRouting } from '@/notifications';
 import { NotificationPrimer } from '@/notifications/NotificationPrimer';
 import { useThemeColors } from '@/theme/colors';
@@ -44,6 +44,7 @@ function RootNavigator() {
   const colors = useThemeColors();
   const signedIn = status === 'signedIn';
   useNotificationRouting(status !== 'loading');
+  useFollowDeviceLanguage();
 
   // After signing in from a screen that asked for it, go back there. Deferred a tick: the
   // guard's own redirect to the anchor runs after this effect and would otherwise win.

@@ -357,6 +357,10 @@ export const en: Strings<typeof ar> = {
       permission: 'Allow Saknly to use your location in the phone settings.',
       outsideEgypt: "Your location is outside Egypt, so it wasn't saved.",
       failed: "Couldn't get your location. Turn on location services and try again.",
+      approximate:
+        'Saknly can only see your approximate location. Allow precise location in the phone settings to pin the property.',
+      imprecise:
+        "Your location isn't precise enough yet. Step outside or near a window and try again.",
     },
     year: 'Year',
     month: 'Month',

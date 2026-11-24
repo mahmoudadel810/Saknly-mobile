@@ -476,10 +476,10 @@ export function ListingForm({
         <LocationPin
           latitude={v.latitude}
           longitude={v.longitude}
-          onChange={(latitude, longitude) => {
-            set('latitude', latitude);
-            set('longitude', longitude);
-          }}
+          // One update, so the schema runs once for both.
+          onChange={(latitude, longitude) =>
+            form.setValues((values) => ({ ...values, latitude, longitude }))
+          }
           canRemove={!(editing && initial.latitude)}
         />
       </Section>

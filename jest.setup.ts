@@ -26,10 +26,10 @@ jest.mock('expo-notifications', () => ({
 
 // The phone's location: granted, standing in Shebin El Kom. Tests override the position per case.
 jest.mock('expo-location', () => ({
-  Accuracy: { Balanced: 3 },
+  Accuracy: { Balanced: 3, High: 4 },
   requestForegroundPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted' })),
   getCurrentPositionAsync: jest.fn(async () => ({
-    coords: { latitude: 30.5591234567, longitude: 31.0101234567 },
+    coords: { latitude: 30.5591234567, longitude: 31.0101234567, accuracy: 12 },
   })),
 }));
 

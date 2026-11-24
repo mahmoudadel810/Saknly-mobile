@@ -306,6 +306,13 @@ describe('map pin', () => {
       await screen.findByText("Your location is outside Egypt, so it wasn't saved."),
     ).toBeTruthy();
 
+    // a fix ±400 m out is a block away: not saved
+    Location.getCurrentPositionAsync.mockResolvedValueOnce({
+      coords: { latitude: 30.55, longitude: 31.01, accuracy: 400 },
+    });
+    await press("I'm at the property: use my location");
+    expect(await screen.findByText(/isn't precise enough/)).toBeTruthy();
+
     await press("I'm at the property: use my location");
     expect(await screen.findByRole('button', { name: 'Move the pin to my location' })).toBeTruthy();
 
