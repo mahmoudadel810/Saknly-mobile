@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { isAxiosError } from 'axios';
 import * as Location from 'expo-location';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
@@ -37,7 +37,13 @@ interface LocationPinProps {
   onChange: (latitude: string, longitude: string) => void;
   /** The address of the new pin (GeoLink, through the server), to fill in what's still empty. */
   onPlace: (place: Place) => void;
+  /** Whether the form still lacks part of the place: no paid address lookup otherwise. */
+  needsPlace: boolean;
 }
+
+// Listings are stored in Arabic (the server's governorate and city names are Arabic), so places
+// are asked for in Arabic whatever the app's language.
+const PLACE_LANGUAGE = 'ar';
 
 /** What went wrong with a /geo call, for the owner. */
 const geoError = (error: unknown) => {
@@ -51,8 +57,14 @@ const geoError = (error: unknown) => {
  * map for this, which needs a map provider here. "Open in Maps" on the listing page then goes to
  * the pin instead of searching for the address.
  */
-export function LocationPin({ latitude, longitude, onChange, onPlace }: LocationPinProps) {
-  const { t, i18n } = useTranslation();
+export function LocationPin({
+  latitude,
+  longitude,
+  onChange,
+  onPlace,
+  needsPlace,
+}: LocationPinProps) {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -61,10 +73,19 @@ export function LocationPin({ latitude, longitude, onChange, onPlace }: Location
   const [results, setResults] = useState<Place[] | null>(null);
   const pinned = latitude !== '' && longitude !== '';
   const busy = locating || searching;
+  // Every pin change gets a number: an address lookup that answers after the pin moved again
+  // (another fix, a search result, Remove) belongs to an old pin and is dropped.
+  const pinVersion = useRef(0);
+  const setPin = (lat: string, lng: string) => {
+    pinVersion.current += 1;
+    onChange(lat, lng);
+    return pinVersion.current;
+  };
 
   const search = async () => {
     const text = query.trim();
-    if (text.length < 2) return;
+    // The keyboard's search key too: not while a location fix is on its way.
+    if (text.length < 2 || busy) return;
     setMessage(null);
     setSearching(true);
     try {
@@ -72,7 +93,7 @@ export function LocationPin({ latitude, longitude, onChange, onPlace }: Location
       const near = pinned
         ? { latitude: Number(latitude), longitude: Number(longitude) }
         : undefined;
-      const places = (await geoApi.search(text, i18n.language, near)).filter((place) =>
+      const places = (await geoApi.search(text, PLACE_LANGUAGE, near)).filter((place) =>
         inEgypt(place.latitude, place.longitude),
       );
       setResults(places);
@@ -86,7 +107,7 @@ export function LocationPin({ latitude, longitude, onChange, onPlace }: Location
   };
 
   const choose = (place: Place) => {
-    onChange(toCoordinate(place.latitude), toCoordinate(place.longitude));
+    setPin(toCoordinate(place.latitude), toCoordinate(place.longitude));
     onPlace(place);
     setResults(null);
     setQuery('');
@@ -118,12 +139,16 @@ export function LocationPin({ latitude, longitude, onChange, onPlace }: Location
         setMessage(t('listing.pin.outsideEgypt'));
         return;
       }
-      onChange(toCoordinate(coords.latitude), toCoordinate(coords.longitude));
+      const version = setPin(toCoordinate(coords.latitude), toCoordinate(coords.longitude));
       // The pin is saved; its address is a bonus, so a failure here says nothing.
-      geoApi
-        .reverse(coords.latitude, coords.longitude, i18n.language)
-        .then(onPlace)
-        .catch(() => {});
+      if (needsPlace) {
+        geoApi
+          .reverse(coords.latitude, coords.longitude, PLACE_LANGUAGE)
+          .then((place) => {
+            if (version === pinVersion.current) onPlace(place);
+          })
+          .catch(() => {});
+      }
     } catch {
       // Location services off, or no fix in time.
       setMessage(t('listing.pin.failed'));
@@ -214,7 +239,7 @@ export function LocationPin({ latitude, longitude, onChange, onPlace }: Location
             <Button
               title={t('listing.pin.remove')}
               variant="link"
-              onPress={() => onChange('', '')}
+              onPress={() => setPin('', '')}
               disabled={busy}
             />
           </View>
