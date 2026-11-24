@@ -339,6 +339,8 @@ describe('delete account', () => {
     expect(attempts).toBe(2);
     expect(alert).toHaveBeenCalledTimes(2);
     expect(await tokenStorage.get()).toBeNull();
+    // the server dropped the token with the account: no logout request that can only fail
+    expect(mock.history.post.filter((r) => r.url?.endsWith('/auth/logout'))).toHaveLength(0);
     await fireEvent.press(tab('Account'));
     expect(await screen.findByText('Sign in to Saknly')).toBeTruthy();
     alert.mockRestore();

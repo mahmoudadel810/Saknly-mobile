@@ -101,6 +101,7 @@ iOS builds run in the cloud too. They need an Apple Developer account.
 
 - An update can carry JavaScript, styles, translations and images. **Anything native** (a new native library, a permission, an `app.json` plugin change, an SDK upgrade) needs a new build. **Before that build, raise `version` in `app.json`** so the new runtime version never receives updates made for the old one, and the other way round.
 - Builds made before this change don't have `expo-updates` and never receive updates.
+- **Server first:** when a change needs something new from Saknly-server (an endpoint or a field), deploy the server before publishing the update or the build that uses it.
 
 ```bash
 # try it on preview builds first

@@ -77,5 +77,11 @@ export const accountApi = {
    * confirms with its password (a wrong one answers 400); a Google-only account sends none.
    */
   delete: async (password?: string) =>
-    (await api.delete<ApiMessage>('/users/me', { data: password ? { password } : {} })).data,
+    (
+      await api.delete<ApiMessage>('/users/me', {
+        data: password ? { password } : {},
+        // The server deletes every listing's photos first: as slow as an upload, not a page load.
+        timeout: 120_000,
+      })
+    ).data,
 };
