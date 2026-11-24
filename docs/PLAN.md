@@ -170,8 +170,9 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 
 - **Type:** IBM Plex Sans Arabic (4 weights, bundled through the `expo-font` config plugin) on every text through `components/Text.tsx`; React Native has no font inheritance, so nothing may import `Text` from `react-native` directly.
 - **Look:** shared `AuthHeader` and `TabHeader`, shadow tokens (`theme/elevation.ts`), larger buttons with an optional icon, icon tiles on `LinkRow`, and a new layout for Home and the property page.
-- **Language in the app** (Account > Preferences): Arabic, English or the device language. `supportsRTL` is gone from `app.json`; `i18n/direction.ts` sets the layout direction and reloads the app when it has to flip.
-- **Notifications** (`expo-notifications`, local only, no push server): offered once, right after an action a notification would follow up on, never at launch; after that the switch under Account is the way in. A tapped notification opens its `data.url`.
+- **Language in the app** (Account > Preferences): Arabic or English. The app follows the device language until the user picks one; after that the pick sticks, and there is no "follow the device" option to go back. `supportsRTL` is gone from `app.json`; `i18n/direction.ts` sets the layout direction and reloads the app when it has to flip, at most once per direction (a mark in secure storage stops a reload loop).
+- **Home agency cards** show no listing count: `/agencies/featured` sends bare listing ids, unpublished ones included, so any count there would be wrong.
+- **Notifications** (`expo-notifications`, local only, no push server): offered once, right after an action a notification would follow up on, never at launch (the primer opens 600 ms later, so it never collides with the inquiry modal closing on iOS); after that the switch under Account is the way in. A tapped notification opens its `data.url` once: the last response is cleared after routing, so a reload doesn't open it again.
 - **Haptics** (`expo-haptics`) on hearts, language changes and saves.
 - **Text:** Arabic prices use Western digits (`ar-EG-u-nu-latn`), matching the counts beside them; room and bathroom counts use all six Arabic plural forms (2 → غرفتان / حمامان).
 - **Web preview:** `auth/tokenStorage.web.ts` keeps the token in `sessionStorage` (secure-store has no web version).

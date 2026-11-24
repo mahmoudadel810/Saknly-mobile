@@ -7,6 +7,7 @@ import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Agency, Testimonial } from '@/api/browseTypes';
+import { initial } from '@/utils/initial';
 import { useAuth } from '@/auth/AuthProvider';
 import { SectionHeader } from '@/components/SectionHeader';
 import { EmptyView, ErrorView, LoadingView } from '@/components/StateViews';
@@ -58,7 +59,8 @@ export default function HomeScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={refresh}
-          tintColor={colors.onPrimary}
+          // iOS draws it in the overscroll above the hero, on the page background, not the teal.
+          tintColor={colors.primary}
           progressViewOffset={insets.top}
         />
       }
@@ -199,12 +201,8 @@ export default function HomeScreen() {
   );
 }
 
-/** The first letter of a name, for an avatar when there is no picture. */
-const initial = (name: string) => name.trim().charAt(0).toUpperCase();
-
+// No listing count: /agencies/featured sends bare ids, unpublished listings included.
 function AgencyCard({ agency }: { agency: Agency }) {
-  const { t } = useTranslation();
-  const count = agency.properties?.length ?? 0;
   return (
     <Pressable
       accessibilityRole="link"
@@ -225,12 +223,9 @@ function AgencyCard({ agency }: { agency: Agency }) {
           <Text className="text-2xl text-accent-on font-bold">{initial(agency.name)}</Text>
         </View>
       )}
-      <View className="gap-1">
-        <Text numberOfLines={2} className="text-left text-base leading-6 text-text font-semibold">
-          {agency.name}
-        </Text>
-        <Text className="text-left text-xs text-muted">{t('agency.listingCount', { count })}</Text>
-      </View>
+      <Text numberOfLines={2} className="text-left text-base leading-6 text-text font-semibold">
+        {agency.name}
+      </Text>
     </Pressable>
   );
 }

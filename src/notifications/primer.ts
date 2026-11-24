@@ -41,6 +41,10 @@ export const markPrimerShown = () => {
  */
 export const offerNotifications = async (reason: PrimerReason) => {
   if (Platform.OS === 'web' || wasShown()) return;
-  if ((await getNotificationAccess()) !== 'undetermined') return;
+  try {
+    if ((await getNotificationAccess()) !== 'undetermined') return;
+  } catch {
+    return; // Called without awaiting after a save; not asking is the safe outcome.
+  }
   listeners.forEach((listener) => listener(reason));
 };

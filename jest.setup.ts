@@ -19,7 +19,8 @@ jest.mock('expo-notifications', () => ({
     status: 'granted',
   })),
   scheduleNotificationAsync: jest.fn(async () => 'notification-id'),
-  getLastNotificationResponseAsync: jest.fn(async () => null),
+  getLastNotificationResponse: jest.fn(() => null),
+  clearLastNotificationResponse: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 

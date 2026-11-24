@@ -111,7 +111,10 @@ function NotificationsRow() {
   // Re-read on focus and when the app comes back from the system settings.
   useFocusEffect(
     useCallback(() => {
-      const refresh = () => getNotificationAccess().then(setAccess);
+      const refresh = () =>
+        getNotificationAccess()
+          .then(setAccess)
+          .catch(() => {});
       refresh();
       const subscription = AppState.addEventListener('change', (state) => {
         if (state === 'active') refresh();
@@ -122,7 +125,7 @@ function NotificationsRow() {
 
   const action =
     access === 'granted'
-      ? { label: t('notifications.sendTest'), run: () => sendTestNotification() }
+      ? { label: t('notifications.sendTest'), run: () => sendTestNotification().catch(() => {}) }
       : access === 'blocked'
         ? { label: t('notifications.openSettings'), run: () => openNotificationSettings() }
         : {

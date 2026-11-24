@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import type { Property } from '@/api/browseTypes';
+import { initial } from '@/utils/initial';
 import { useAuth } from '@/auth/AuthProvider';
 import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
@@ -145,7 +146,7 @@ export default function PropertyScreen() {
             <View className="flex-row items-center gap-3">
               <View className="h-12 w-12 items-center justify-center rounded-2xl bg-accent">
                 <Text className="text-lg text-accent-on font-bold">
-                  {p.contactInfo.name.trim().charAt(0)}
+                  {initial(p.contactInfo.name)}
                 </Text>
               </View>
               <View className="flex-1 gap-0.5">
@@ -303,7 +304,7 @@ function Comments({ id, canComment }: { id: string; canComment: boolean }) {
               <View key={comment._id} className="flex-row gap-3 rounded-2xl bg-field p-3">
                 <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-soft">
                   <Text className="text-sm text-primary font-bold">
-                    {(comment.user?.userName ?? '?').charAt(0).toUpperCase()}
+                    {initial(comment.user?.userName)}
                   </Text>
                 </View>
                 <View className="flex-1 gap-0.5">

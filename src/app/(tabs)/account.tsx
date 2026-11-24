@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { initial } from '@/utils/initial';
 import { useSignInPrompt } from '@/auth/returnTo';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
@@ -108,9 +109,7 @@ function SignedIn() {
       >
         <View className="flex-row items-center gap-4">
           <View className="h-16 w-16 items-center justify-center rounded-3xl bg-primary">
-            <Text className="text-2xl text-on-primary font-bold">
-              {(user?.userName ?? '?').charAt(0).toUpperCase()}
-            </Text>
+            <Text className="text-2xl text-on-primary font-bold">{initial(user?.userName)}</Text>
           </View>
           <View className="flex-1 gap-1">
             <Text numberOfLines={1} className="text-left text-lg text-text font-bold">

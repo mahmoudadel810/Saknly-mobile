@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, View } from 'react-native';
 
 import type { Property } from '@/api/browseTypes';
+import { initial } from '@/utils/initial';
 import { EmptyView, ErrorView, LoadingView } from '@/components/StateViews';
 import { PropertyCard } from '@/features/properties/PropertyCard';
 import { useAgency } from '@/features/properties/queries';
@@ -49,7 +50,7 @@ export default function AgencyScreen() {
             />
           ) : (
             <View className="h-[88px] w-[88px] items-center justify-center rounded-3xl bg-accent">
-              <Text className="text-4xl text-accent-on font-bold">{a.name.trim().charAt(0)}</Text>
+              <Text className="text-4xl text-accent-on font-bold">{initial(a.name)}</Text>
             </View>
           )}
           <Text accessibilityRole="header" className="text-center text-2xl text-text font-bold">
