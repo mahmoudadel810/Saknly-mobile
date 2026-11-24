@@ -94,3 +94,19 @@ npx eas-cli@latest build --profile preview --platform android
 ```
 
 iOS builds run in the cloud too. They need an Apple Developer account.
+
+## Over-the-air updates (EAS Update)
+
+`expo-updates` is set up: every build made from now on checks for an update when it starts. Each build profile in `eas.json` has its own channel (`development`, `preview`, `production`), and `runtimeVersion` follows the app version (`"policy": "appVersion"`).
+
+- An update can carry JavaScript, styles, translations and images. **Anything native** (a new native library, a permission, an `app.json` plugin change, an SDK upgrade) needs a new build. **Before that build, raise `version` in `app.json`** so the new runtime version never receives updates made for the old one, and the other way round.
+- Builds made before this change don't have `expo-updates` and never receive updates.
+
+```bash
+# try it on preview builds first
+npx eas-cli@latest update --channel preview --environment preview --message "Fix the price on the listing card"
+# then the same for production, once tested
+npx eas-cli@latest update --channel production --environment production --message "..."
+```
+
+A release build downloads a new update in the background and runs it on the next start: to see one, close the app fully and open it again, up to two times.

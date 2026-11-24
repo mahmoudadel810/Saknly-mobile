@@ -11,7 +11,8 @@
       },
       "env": {
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -20,13 +21,15 @@
       },
       "env": {
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "431560128258-uo934sfp4o470nebocf56m6g5bbma30e.apps.googleusercontent.com"
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {
