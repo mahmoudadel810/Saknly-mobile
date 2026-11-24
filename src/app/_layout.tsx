@@ -101,6 +101,10 @@ function RootNavigator() {
           name="listing/edit/[id]"
           options={{ headerShown: true, title: t('listing.editTitle') }}
         />
+        <Stack.Screen
+          name="delete-account"
+          options={{ headerShown: true, title: t('deleteAccount.title') }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" />

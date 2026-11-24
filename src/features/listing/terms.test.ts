@@ -20,7 +20,7 @@ import {
   toDecimal,
   toListingFields,
 } from './draft';
-import { removedImages, toPhotoUpdateFields } from './formData';
+import { clearedFields, removedImages, toPhotoUpdateFields } from './formData';
 import { inEgypt, toCoordinate } from './pin';
 
 const base: ListingDraft = {
@@ -298,6 +298,50 @@ describe('the map pin', () => {
       expect([place, inEgypt(lat, lng)]).toEqual([place, false]),
     );
     expect(toCoordinate(30.5591234567)).toBe('30.559123');
+  });
+});
+
+describe('fields emptied on an edit', () => {
+  it('are listed as clear[], including those dropped with installments', () => {
+    const before: ListingDraft = {
+      ...sale,
+      paymentMethod: 'installment',
+      downPayment: '500000',
+      installmentYears: '5',
+      deliveryMonth: '2028-03',
+      deliveryTerms: 'نصف تشطيب',
+      floor: '3',
+      latitude: '30.1',
+      longitude: '31.2',
+    };
+    const after: ListingDraft = {
+      ...before,
+      paymentMethod: 'cash',
+      deliveryMonth: '',
+      latitude: '',
+      longitude: '',
+    };
+    expect(clearedFields(before, after)).toEqual([
+      ['clear[]', 'location.latitude'],
+      ['clear[]', 'location.longitude'],
+      ['clear[]', 'downPayment'],
+      ['clear[]', 'installmentPeriodInYears'],
+      ['clear[]', 'deliveryDate'],
+    ]);
+    // nothing emptied, nothing cleared
+    expect(clearedFields(before, before)).toEqual([]);
+  });
+
+  it('clears the universities once the last one is removed', () => {
+    const before: ListingDraft = {
+      ...student,
+      semester: 'fall',
+      universities: [{ name: 'جامعة المنوفية', distanceInKm: '1' }],
+    };
+    expect(clearedFields(before, { ...before, semester: '', universities: [] })).toEqual([
+      ['clear[]', 'studentHousingDetails.semester'],
+      ['clear[]', 'studentHousingDetails.nearbyUniversities'],
+    ]);
   });
 });
 

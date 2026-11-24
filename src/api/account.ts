@@ -70,3 +70,12 @@ export const testimonialWriteApi = {
   submit: async (input: TestimonialInput) =>
     (await api.post<ApiMessage>('/testimonial', input)).data,
 };
+
+export const accountApi = {
+  /**
+   * DELETE /users/me: deletes the account and everything it published. A password account
+   * confirms with its password (a wrong one answers 400); a Google-only account sends none.
+   */
+  delete: async (password?: string) =>
+    (await api.delete<ApiMessage>('/users/me', { data: password ? { password } : {} })).data,
+};

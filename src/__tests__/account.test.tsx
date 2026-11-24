@@ -297,3 +297,71 @@ describe('account tab', () => {
     });
   });
 });
+
+describe('delete account', () => {
+  it('asks for the password, keeps the user signed in on a wrong one, then deletes and signs out', async () => {
+    await signIn();
+    mock.onGet('/auth/getMe').reply(200, {
+      success: true,
+      message: 'ok',
+      data: { user: { ...user, provider: 'local' } },
+    });
+    let attempts = 0;
+    mock.onDelete('/users/me').reply((config) => {
+      attempts += 1;
+      return JSON.parse(config.data).password === 'Right-Passw0rd'
+        ? [200, { success: true, message: 'Your account was deleted' }]
+        : [400, { success: false, message: 'Password is not correct' }];
+    });
+    mock.onPost('/auth/logout').reply(401, { success: false, message: 'gone' });
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation((_title, _body, buttons) => {
+      buttons?.find((button) => button.style === 'destructive')?.onPress?.();
+    });
+
+    await renderApp('/account');
+    await fireEvent.press(await screen.findByRole('button', { name: 'Delete account' }));
+    expect(await screen.findByText('Delete your Saknly account')).toBeTruthy();
+
+    // nothing is sent without the password
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
+    expect(await screen.findByText('Enter your password to confirm.')).toBeTruthy();
+    expect(attempts).toBe(0);
+
+    // a wrong password is a 400: an error on the form, still signed in
+    await fireEvent.changeText(screen.getByLabelText('Password'), 'wrong');
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
+    expect(await screen.findByText('The password is not correct.')).toBeTruthy();
+    expect(screen).toHavePathname('/delete-account');
+
+    await fireEvent.changeText(screen.getByLabelText('Password'), 'Right-Passw0rd');
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
+    await waitFor(() => expect(screen).toHavePathname('/'));
+    expect(attempts).toBe(2);
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(await tokenStorage.get()).toBeNull();
+    await fireEvent.press(tab('Account'));
+    expect(await screen.findByText('Sign in to Saknly')).toBeTruthy();
+    alert.mockRestore();
+  });
+
+  it('needs no password for a Google account', async () => {
+    await signIn();
+    mock.onGet('/auth/getMe').reply(200, {
+      success: true,
+      message: 'ok',
+      data: { user: { ...user, provider: 'google' } },
+    });
+    mock.onDelete('/users/me').reply(200, { success: true, message: 'Your account was deleted' });
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation((_title, _body, buttons) => {
+      buttons?.find((button) => button.style === 'destructive')?.onPress?.();
+    });
+
+    await renderApp('/delete-account');
+    await screen.findByText('Delete your Saknly account');
+    expect(screen.queryByLabelText('Password')).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
+    await waitFor(() => expect(screen).toHavePathname('/'));
+    expect(JSON.parse(mock.history.delete[0].data)).toEqual({});
+    alert.mockRestore();
+  });
+});

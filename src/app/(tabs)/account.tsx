@@ -155,6 +155,11 @@ function SignedIn() {
           }
         }}
       />
+      <Button
+        title={t('deleteAccount.title')}
+        variant="link"
+        onPress={() => router.push('/delete-account')}
+      />
     </Screen>
   );
 }

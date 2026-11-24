@@ -30,8 +30,8 @@ export const listingTerms = (p: Property, now = new Date()): TermRow[] => {
 
   if (p.category === 'sale') {
     add('payment', p.paymentMethod && t(`listing.payments.${p.paymentMethod}`));
-    // An edit can't clear a field on the server, so a listing switched to cash may still carry
-    // an old down payment: only show installment figures while installments are offered.
+    // A listing switched to cash before edits could clear fields may still carry an old down
+    // payment: only show installment figures while installments are offered.
     if (p.paymentMethod && p.paymentMethod !== 'cash') {
       add('downPayment', positive(p.downPayment) && formatMoney(p.downPayment));
       add(

@@ -30,8 +30,6 @@ interface LocationPinProps {
   latitude: string;
   longitude: string;
   onChange: (latitude: string, longitude: string) => void;
-  /** False on an edit of a listing that already had a pin: the server can't clear one. */
-  canRemove: boolean;
 }
 
 /**
@@ -39,7 +37,7 @@ interface LocationPinProps {
  * web form uses a map for this, which needs a Google Maps key here. "Open in Maps" on the
  * listing page then goes to the pin instead of searching for the address.
  */
-export function LocationPin({ latitude, longitude, onChange, canRemove }: LocationPinProps) {
+export function LocationPin({ latitude, longitude, onChange }: LocationPinProps) {
   const { t } = useTranslation();
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -107,17 +105,15 @@ export function LocationPin({ latitude, longitude, onChange, canRemove }: Locati
               onPress={() => openLink(coordinatesUrl(Number(latitude), Number(longitude)))}
             />
           </View>
-          {canRemove ? (
-            <View className="flex-1">
-              {/* Not while locating: the fix arriving afterwards would put the pin back. */}
-              <Button
-                title={t('listing.pin.remove')}
-                variant="link"
-                onPress={() => onChange('', '')}
-                disabled={locating}
-              />
-            </View>
-          ) : null}
+          <View className="flex-1">
+            {/* Not while locating: the fix arriving afterwards would put the pin back. */}
+            <Button
+              title={t('listing.pin.remove')}
+              variant="link"
+              onPress={() => onChange('', '')}
+              disabled={locating}
+            />
+          </View>
         </View>
       ) : null}
     </View>
