@@ -24,7 +24,19 @@ export function NotificationPrimer() {
   const [reason, setReason] = useState<PrimerReason | null>(null);
   const [asking, setAsking] = useState(false);
 
-  useEffect(() => onPrimerRequest(setReason), []);
+  // Opens after a pause: it is requested right as a screen closes (the inquiry modal), and iOS
+  // won't present a modal while another is still being dismissed.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribe = onPrimerRequest((next) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => setReason(next), 600);
+    });
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
+  }, []);
 
   const close = () => {
     markPrimerShown();

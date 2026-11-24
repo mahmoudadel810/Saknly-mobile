@@ -69,8 +69,19 @@ export const sendTestNotification = async () => {
   });
 };
 
+let lastHandled: string | null = null;
+
+/**
+ * Each tap is routed once: a cold-start tap can arrive both as the last response and through the
+ * listener, and the last response outlives a JS reload (a language switch), so it is cleared too.
+ */
 const openFromNotification = (response: Notifications.NotificationResponse | null) => {
-  const url = response?.notification.request.content.data?.url;
+  if (!response) return;
+  const id = response.notification.request.identifier;
+  if (id === lastHandled) return;
+  lastHandled = id;
+  Notifications.clearLastNotificationResponse();
+  const url = response.notification.request.content.data?.url;
   if (typeof url === 'string' && url.startsWith('/')) router.push(url as Href);
 };
 
@@ -83,7 +94,7 @@ export function useNotificationRouting(ready: boolean) {
   useEffect(() => {
     if (Platform.OS === 'web' || !ready) return;
     // A tap that started the app arrives before this listener exists.
-    Notifications.getLastNotificationResponseAsync().then(openFromNotification);
+    openFromNotification(Notifications.getLastNotificationResponse());
     const subscription =
       Notifications.addNotificationResponseReceivedListener(openFromNotification);
     return () => subscription.remove();
