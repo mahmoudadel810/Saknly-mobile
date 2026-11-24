@@ -471,6 +471,11 @@ export const en: Strings<typeof ar> = {
             'Open the listing from "My properties", tap "Delete property" and confirm. Deleting is permanent and also removes the listing\'s photos and comments.',
         },
         {
+          question: 'How do I delete my account?',
+          answer:
+            'In Account, tap "Delete account" at the bottom and confirm with your password (a Google account needs none). Your account, listings, comments and wishlist are deleted for good.',
+        },
+        {
           question: 'How do I contact a property owner?',
           answer:
             "The contact details the owner wrote are on the property page: a phone number and sometimes WhatsApp. You can also send an inquiry from the same page. Saknly doesn't take part in agreements or payments.",
@@ -556,7 +561,7 @@ export const en: Strings<typeof ar> = {
         {
           title: 'Your choices',
           paragraphs: [
-            'You can delete your listings from "My properties". To delete your account or correct its details, write to us from the "Contact us" screen.',
+            'You can delete your listings from "My properties", and your whole account from Account > "Delete account": that also deletes your listings with their photos, your comments, your wishlist, and the inquiries and messages you sent from your email. To correct your details, write to us from the "Contact us" screen.',
           ],
           bullets: [],
         },
@@ -569,6 +574,26 @@ export const en: Strings<typeof ar> = {
         },
       ],
     },
+  },
+  deleteAccount: {
+    title: 'Delete account',
+    heading: 'Delete your Saknly account',
+    intro: 'This deletes your account and everything you published:',
+    gone: [
+      'Your listings, with their photos, comments and inquiries',
+      'Your comments and your wishlist',
+      'The inquiries and messages you sent from your email',
+    ],
+    final: "This can't be undone. Reviews you shared stay, under the name you gave them.",
+    submit: 'Delete my account',
+    confirmTitle: 'Delete your account?',
+    confirmBody: 'Your account and listings will be deleted for good.',
+    cancel: 'Cancel',
+    confirm: 'Delete',
+    done: 'Your account was deleted.',
+    passwordRequired: 'Enter your password to confirm.',
+    wrongPassword: 'The password is not correct.',
+    lastAdmin: 'You are the only admin. Make someone else an admin first.',
   },
   settings: {
     title: 'Settings',

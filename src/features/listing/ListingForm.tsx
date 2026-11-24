@@ -26,7 +26,7 @@ import {
   toDecimal,
   toDigits,
 } from './draft';
-import { removedImages } from './formData';
+import { clearedFields, removedImages } from './formData';
 import { LocationPin } from './LocationPin';
 import { MonthPicker, yearsFrom } from './MonthPicker';
 import { PhotoPicker } from './PhotoPicker';
@@ -39,6 +39,8 @@ export interface ListingSubmit {
   photos: LocalPhoto[];
   /** The cover is the first new photo, not the first kept one (edit only). */
   coverIsNew: boolean;
+  /** `clear[]` fields for what the owner emptied (edit only). */
+  clear: [string, string][];
   onProgress: (fraction: number) => void;
 }
 
@@ -114,7 +116,16 @@ export function ListingForm({
       }
       setProgress(0);
       try {
-        await onSubmit({ draft, kept, removed, photos, coverIsNew, onProgress: setProgress });
+        const clear = editing ? clearedFields(initial, draft) : [];
+        await onSubmit({
+          draft,
+          kept,
+          removed,
+          photos,
+          coverIsNew,
+          clear,
+          onProgress: setProgress,
+        });
       } catch (e) {
         setError(describeError(e));
       } finally {
@@ -480,7 +491,6 @@ export function ListingForm({
           onChange={(latitude, longitude) =>
             form.setValues((values) => ({ ...values, latitude, longitude }))
           }
-          canRemove={!(editing && initial.latitude)}
         />
       </Section>
 
