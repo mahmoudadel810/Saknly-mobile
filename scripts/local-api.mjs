@@ -1,11 +1,13 @@
 // Runs Saknly-server locally for end-to-end tests of the mobile app, fully isolated:
-// an in-memory MongoDB, a fake SMTP inbox, a fake Cloudinary, no queue. Nothing reaches a real service.
+// an in-memory MongoDB, a fake SMTP inbox, a fake Cloudinary, a fake GeoLink, no queue. Nothing
+// reaches a real service.
 //
 //   SAKNLY_SERVER_DIR=../Saknly-server node scripts/local-api.mjs
 //
 // API:   http://127.0.0.1:5055/api/saknly/v1   (PORT)
 // Inbox: http://127.0.0.1:5056/mail            (MAIL_PORT) — JSON list of captured emails
 // Media: http://127.0.0.1:5057/uploads         (MEDIA_PORT) — uploaded and deleted photo ids
+// Geo:   http://127.0.0.1:5058/api/v2          (GEO_PORT) — GeoLink search and reverse geocoding
 // Data:  the server seed script (demo users, agencies, listings, comments, testimonials).
 //        Demo logins: <name>@saknly.example.com / LocalDemo1!, admin@saknly.example.com / LocalAdmin1!
 import { spawn } from 'node:child_process';
@@ -21,6 +23,7 @@ const PORT = Number(process.env.PORT || 5055);
 const SMTP_PORT = Number(process.env.SMTP_PORT || 2525);
 const MAIL_PORT = Number(process.env.MAIL_PORT || 5056);
 const MEDIA_PORT = Number(process.env.MEDIA_PORT || 5057);
+const GEO_PORT = Number(process.env.GEO_PORT || 5058);
 // Host in the image URLs the fake Cloudinary hands out: 10.0.2.2 for the Android emulator.
 const MEDIA_HOST = process.env.MEDIA_HOST || '127.0.0.1';
 
@@ -157,6 +160,59 @@ http
   })
   .listen(MEDIA_PORT, '0.0.0.0');
 
+// --- fake GeoLink: a few real places, answered in GeoLink's own format ----------------------
+const PLACES = [
+  {
+    short_address: 'الإدارة العامة لجامعة المنوفية',
+    address: 'الإدارة العامة لجامعة المنوفية, مركز شبين الكوم, محافظة المنوفية, EG',
+    address_parts: { country: 'EG', district: 'مركز شبين الكوم', governorate: 'محافظة المنوفية' },
+    location: { lat: 30.5655764, lng: 31.0130822 },
+  },
+  {
+    short_address: 'بازار الجمهورية',
+    address: 'شارع الجمهورية، قسم شبين الكوم، المنوفية، مركز شبين الكوم',
+    address_parts: { country: 'EG', district: 'مركز شبين الكوم', governorate: 'محافظة المنوفية' },
+    location: { lat: 30.5520181, lng: 31.0121315 },
+  },
+  {
+    short_address: 'برج القاهرة',
+    address: 'برج القاهرة، الجزيرة، قسم الزمالك، محافظة القاهرة',
+    address_parts: { country: 'EG', district: 'قسم الزمالك', governorate: 'محافظة القاهرة' },
+    location: { lat: 30.0459, lng: 31.2243 },
+  },
+];
+const nearest = (lat, lng) =>
+  PLACES.reduce((best, place) =>
+    Math.hypot(place.location.lat - lat, place.location.lng - lng) <
+    Math.hypot(best.location.lat - lat, best.location.lng - lng)
+      ? place
+      : best,
+  );
+http
+  .createServer((req, res) => {
+    const url = new URL(req.url, 'http://127.0.0.1');
+    const json = (status, body) => {
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(body));
+    };
+    if (url.searchParams.get('key') !== 'local')
+      return json(401, { success: false, error: 'Invalid API key' });
+    if (url.pathname === '/api/v2/text_search') {
+      const query = url.searchParams.get('query') ?? '';
+      const words = query.split(/\s+/).filter((word) => word.length > 1);
+      const found = PLACES.filter((place) => words.some((word) => place.address.includes(word)));
+      return json(200, { success: true, data: found });
+    }
+    if (url.pathname === '/api/v2/reverse_geocode') {
+      const lat = Number(url.searchParams.get('latitude'));
+      const lng = Number(url.searchParams.get('longitude'));
+      const place = nearest(lat, lng);
+      return json(200, { success: true, data: { ...place, location: { lat, lng } } });
+    }
+    return json(404, { success: false, error: 'Not found' });
+  })
+  .listen(GEO_PORT, '127.0.0.1');
+
 // --- isolated environment, set before the server reads it (real env wins over .env files) ---
 // Reuse the MongoDB binary the server's own test suite already downloaded.
 process.env.MONGOMS_DOWNLOAD_DIR ||= path.join(
@@ -189,6 +245,8 @@ Object.assign(process.env, {
   GOOGLE_CLIENT_ID: '',
   GOOGLE_CLIENT_SECRET: '',
   GEMINI_API_KEY: '',
+  GEOLINK_API_KEY: 'local',
+  GEOLINK_BASE_URL: `http://127.0.0.1:${GEO_PORT}/api/v2`,
 });
 delete process.env.VERCEL;
 

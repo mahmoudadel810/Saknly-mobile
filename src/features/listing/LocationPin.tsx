@@ -1,11 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
+import { isAxiosError } from 'axios';
 import * as Location from 'expo-location';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { geoApi, type Place } from '@/api/geo';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
+import { TextField } from '@/components/TextField';
 import { coordinatesUrl } from '@/features/properties/contact';
+import { useThemeColors } from '@/theme/colors';
 import { openLink } from '@/utils/openLink';
 
 import { inEgypt, LOCATE_TIMEOUT_MS, MAX_ERROR_METRES, toCoordinate } from './pin';
@@ -30,18 +35,62 @@ interface LocationPinProps {
   latitude: string;
   longitude: string;
   onChange: (latitude: string, longitude: string) => void;
+  /** The address of the new pin (GeoLink, through the server), to fill in what's still empty. */
+  onPlace: (place: Place) => void;
 }
 
+/** What went wrong with a /geo call, for the owner. */
+const geoError = (error: unknown) => {
+  const status = isAxiosError(error) ? error.response?.status : undefined;
+  return status === 429 ? 'listing.pin.tooMany' : 'listing.pin.searchFailed';
+};
+
 /**
- * The listing's map pin from the phone's location, for an owner standing at the property; the
- * web form uses a map for this, which needs a Google Maps key here. "Open in Maps" on the
- * listing page then goes to the pin instead of searching for the address.
+ * The listing's map pin: from the phone's location for an owner standing at the property, or
+ * from a search for the address or a landmark (GeoLink, through the server). The web form uses a
+ * map for this, which needs a map provider here. "Open in Maps" on the listing page then goes to
+ * the pin instead of searching for the address.
  */
-export function LocationPin({ latitude, longitude, onChange }: LocationPinProps) {
-  const { t } = useTranslation();
+export function LocationPin({ latitude, longitude, onChange, onPlace }: LocationPinProps) {
+  const { t, i18n } = useTranslation();
+  const colors = useThemeColors();
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<Place[] | null>(null);
   const pinned = latitude !== '' && longitude !== '';
+  const busy = locating || searching;
+
+  const search = async () => {
+    const text = query.trim();
+    if (text.length < 2) return;
+    setMessage(null);
+    setSearching(true);
+    try {
+      // Near the current pin first, when there is one.
+      const near = pinned
+        ? { latitude: Number(latitude), longitude: Number(longitude) }
+        : undefined;
+      const places = (await geoApi.search(text, i18n.language, near)).filter((place) =>
+        inEgypt(place.latitude, place.longitude),
+      );
+      setResults(places);
+      if (!places.length) setMessage(t('listing.pin.noResults'));
+    } catch (error) {
+      setResults(null);
+      setMessage(t(geoError(error)));
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const choose = (place: Place) => {
+    onChange(toCoordinate(place.latitude), toCoordinate(place.longitude));
+    onPlace(place);
+    setResults(null);
+    setQuery('');
+  };
 
   const locate = async () => {
     setMessage(null);
@@ -70,6 +119,11 @@ export function LocationPin({ latitude, longitude, onChange }: LocationPinProps)
         return;
       }
       onChange(toCoordinate(coords.latitude), toCoordinate(coords.longitude));
+      // The pin is saved; its address is a bonus, so a failure here says nothing.
+      geoApi
+        .reverse(coords.latitude, coords.longitude, i18n.language)
+        .then(onPlace)
+        .catch(() => {});
     } catch {
       // Location services off, or no fix in time.
       setMessage(t('listing.pin.failed'));
@@ -95,7 +149,57 @@ export function LocationPin({ latitude, longitude, onChange }: LocationPinProps)
         variant="secondary"
         onPress={locate}
         loading={locating}
+        disabled={searching}
       />
+      <View className="flex-row items-end gap-2">
+        <View className="flex-1">
+          <TextField
+            label={t('listing.pin.searchLabel')}
+            placeholder={t('listing.pin.searchPlaceholder')}
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={search}
+            returnKeyType="search"
+            maxLength={100}
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('listing.pin.search')}
+          accessibilityState={{ disabled: busy || query.trim().length < 2 }}
+          disabled={busy || query.trim().length < 2}
+          onPress={search}
+          className="h-[52px] w-[52px] items-center justify-center rounded-2xl bg-primary active:bg-primary-hover"
+        >
+          <Ionicons name="search" size={20} color={colors.onPrimary} />
+        </Pressable>
+      </View>
+      {searching ? (
+        <Text className="text-left text-sm text-muted">{t('listing.pin.searching')}</Text>
+      ) : null}
+      {results?.length ? (
+        <View className="overflow-hidden rounded-2xl border border-border">
+          {results.map((place, i) => (
+            <Pressable
+              key={`${place.latitude},${place.longitude},${i}`}
+              accessibilityRole="button"
+              accessibilityLabel={`${place.name}، ${place.address}`}
+              onPress={() => choose(place)}
+              className={`flex-row items-center gap-3 px-3 py-3 active:bg-surface-2 ${
+                i ? 'border-t border-border' : ''
+              }`}
+            >
+              <Ionicons name="location-outline" size={18} color={colors.primary} />
+              <View className="flex-1 gap-0.5">
+                <Text className="text-left text-base text-text font-medium">{place.name}</Text>
+                <Text numberOfLines={2} className="text-left text-sm text-text-2">
+                  {place.address}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       {pinned ? (
         <View className="flex-row gap-3">
           <View className="flex-1">
@@ -111,7 +215,7 @@ export function LocationPin({ latitude, longitude, onChange }: LocationPinProps)
               title={t('listing.pin.remove')}
               variant="link"
               onPress={() => onChange('', '')}
-              disabled={locating}
+              disabled={busy}
             />
           </View>
         </View>

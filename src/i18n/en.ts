@@ -361,6 +361,13 @@ export const en: Strings<typeof ar> = {
         'Saknly can only see your approximate location. Allow precise location in the phone settings to pin the property.',
       imprecise:
         "Your location isn't precise enough yet. Step outside or near a window and try again.",
+      searchLabel: 'Or find it by address or a landmark',
+      searchPlaceholder: 'For example: Gomhoreya St, Shebin El Kom',
+      search: 'Search',
+      searching: 'Searching…',
+      noResults: 'No places found. Try other words, or a landmark nearby.',
+      searchFailed: "Search isn't available right now. Try again later.",
+      tooMany: 'Too many searches. Try again in a few minutes.',
     },
     year: 'Year',
     month: 'Month',
