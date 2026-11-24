@@ -8,10 +8,12 @@ import { type Language, readLanguage } from './preference';
 
 export const SUPPORTED_LANGUAGES = ['ar', 'en'] as const;
 
-// The user's choice in the app wins. Without one: Arabic first, English only when the device's
-// preferred language is English.
-const deviceLanguage: Language = getLocales()[0]?.languageCode === 'en' ? 'en' : 'ar';
-const language: Language = readLanguage() ?? deviceLanguage;
+/** Arabic first: English only when the device's preferred language is English. */
+export const deviceLanguage = (): Language =>
+  getLocales()[0]?.languageCode === 'en' ? 'en' : 'ar';
+
+// The user's choice in the app wins; without one, the device's language.
+const language: Language = readLanguage() ?? deviceLanguage();
 
 const i18n = createInstance();
 

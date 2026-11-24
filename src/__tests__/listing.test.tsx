@@ -287,3 +287,50 @@ describe('sale terms', () => {
     expect(await screen.findByText('EGP 12,748')).toBeTruthy();
   });
 });
+
+describe('map pin', () => {
+  it("saves the owner's location with the listing, and refuses one outside Egypt", async () => {
+    const Location = jest.requireMock('expo-location');
+    mock.onPost('/properties/addProperty').reply(201, {
+      success: true,
+      message: 'ok',
+      data: listing('pin1', 'شقة', { isApproved: false, isActive: false }),
+    });
+
+    await renderApp('/listing/new');
+    Location.getCurrentPositionAsync.mockResolvedValueOnce({
+      coords: { latitude: 51.5, longitude: -0.12 },
+    });
+    await press("I'm at the property: use my location");
+    expect(
+      await screen.findByText("Your location is outside Egypt, so it wasn't saved."),
+    ).toBeTruthy();
+
+    await press("I'm at the property: use my location");
+    expect(await screen.findByRole('button', { name: 'Move the pin to my location' })).toBeTruthy();
+
+    await press('For rent');
+    await press('شقة');
+    await type('Listing title', 'شقة قريبة من الجامعة');
+    await type('Description', 'شقة هادئة');
+    await type('Price (EGP)', '5000');
+    await type('Area (m²)', '90');
+    await type('Bedrooms', '2');
+    await type('Bathrooms', '1');
+    await type('Lease length (months)', '12');
+    await press('المنوفية');
+    await press('شبين الكوم');
+    await type('Who answers calls', 'منى عادل');
+    await press('Choose from gallery');
+    await screen.findByRole('button', { name: 'Remove photo 2' });
+    await press('Publish listing');
+
+    await waitFor(() => expect(mock.history.post).toHaveLength(1));
+    expect(entries(mock.history.post[0].data)).toEqual(
+      expect.arrayContaining([
+        ['location[latitude]', '30.559123'],
+        ['location[longitude]', '31.010123'],
+      ]),
+    );
+  });
+});

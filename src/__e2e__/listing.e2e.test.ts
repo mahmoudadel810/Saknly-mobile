@@ -325,6 +325,19 @@ describe('sale, rental and student terms', () => {
     await listingsApi.remove(rent._id);
   });
 
+  it('stores the map pin from the phone', async () => {
+    await signInAs('fatma.hassan');
+    const pinned = await listingsApi.create(
+      body(
+        toListingFields({ ...rental, latitude: '30.559123', longitude: '31.010123' }),
+        'images',
+        1,
+      ),
+    );
+    expect(pinned.location).toMatchObject({ latitude: 30.559123, longitude: 31.010123 });
+    await listingsApi.remove(pinned._id);
+  });
+
   it('stores the stay and the nearby universities of student housing', async () => {
     await signInAs('fatma.hassan');
     const student = await listingsApi.create(

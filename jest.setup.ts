@@ -24,6 +24,15 @@ jest.mock('expo-notifications', () => ({
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
+// The phone's location: granted, standing in Shebin El Kom. Tests override the position per case.
+jest.mock('expo-location', () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted' })),
+  getCurrentPositionAsync: jest.fn(async () => ({
+    coords: { latitude: 30.5591234567, longitude: 31.0101234567 },
+  })),
+}));
+
 // The native Google sign-in module. Tests set `GoogleSignin.signIn` to what the account picker returns.
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: {
@@ -50,6 +59,8 @@ jest.mock('expo-secure-store', () => {
     getItemAsync: jest.fn(async (key: string) => store.get(key) ?? null),
     setItemAsync: jest.fn(async (key: string, value: string) => void store.set(key, value)),
     deleteItemAsync: jest.fn(async (key: string) => void store.delete(key)),
+    getItem: jest.fn((key: string) => store.get(key) ?? null),
+    setItem: jest.fn((key: string, value: string) => void store.set(key, value)),
     __reset: () => store.clear(),
   };
 });

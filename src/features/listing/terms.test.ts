@@ -21,6 +21,7 @@ import {
   toListingFields,
 } from './draft';
 import { removedImages, toPhotoUpdateFields } from './formData';
+import { inEgypt, toCoordinate } from './pin';
 
 const base: ListingDraft = {
   ...EMPTY_DRAFT,
@@ -251,6 +252,29 @@ describe('fields in a hidden section', () => {
     expect(errorsOf({ ...rent, availableMonth: '2027' })).toEqual(['availableMonth']);
     expect(errorsOf({ ...sale, deliveryMonth: '2028-03' })).toEqual([]);
     expect(keys({ ...sale, deliveryMonth: '2028' })).not.toContain('deliveryDate');
+  });
+});
+
+describe('the map pin', () => {
+  it('is sent with the location only when both coordinates are set', () => {
+    expect(toListingFields({ ...rent, latitude: '30.559123', longitude: '31.010123' })).toEqual(
+      expect.arrayContaining([
+        ['location[latitude]', '30.559123'],
+        ['location[longitude]', '31.010123'],
+      ]),
+    );
+    expect(keys({ ...rent, latitude: '30.5' })).not.toContain('location[latitude]');
+    const p = listing('p1', 'x', {
+      location: { address: 'a', governorate: 'g', city: 'c', latitude: 30.1, longitude: 31.2 },
+    });
+    expect(draftFromProperty(p)).toMatchObject({ latitude: '30.1', longitude: '31.2' });
+  });
+
+  it('keeps pins inside Egypt, rounded to six decimals', () => {
+    expect(inEgypt(30.04, 31.23)).toBe(true); // Cairo
+    expect(inEgypt(22.34, 31.61)).toBe(true); // Abu Simbel
+    expect(inEgypt(51.5, -0.12)).toBe(false); // London
+    expect(toCoordinate(30.5591234567)).toBe('30.559123');
   });
 });
 

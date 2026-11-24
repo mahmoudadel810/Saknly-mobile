@@ -1,0 +1,109 @@
+import * as Location from 'expo-location';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
+
+import { Button } from '@/components/Button';
+import { Text } from '@/components/Text';
+import { mapsUrl } from '@/features/properties/contact';
+import { openLink } from '@/utils/openLink';
+
+import { inEgypt, toCoordinate } from './pin';
+
+interface LocationPinProps {
+  latitude: string;
+  longitude: string;
+  onChange: (latitude: string, longitude: string) => void;
+  /** False on an edit of a listing that already had a pin: the server can't clear one. */
+  canRemove: boolean;
+}
+
+/**
+ * The listing's map pin from the phone's location, for an owner standing at the property; the
+ * web form uses a map for this, which needs a Google Maps key here. "Open in Maps" on the
+ * listing page then goes to the pin instead of searching for the address.
+ */
+export function LocationPin({ latitude, longitude, onChange, canRemove }: LocationPinProps) {
+  const { t } = useTranslation();
+  const [locating, setLocating] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const pinned = latitude !== '' && longitude !== '';
+
+  const locate = async () => {
+    setMessage(null);
+    setLocating(true);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setMessage(t('listing.pin.permission'));
+        return;
+      }
+      const { coords } = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      if (!inEgypt(coords.latitude, coords.longitude)) {
+        setMessage(t('listing.pin.outsideEgypt'));
+        return;
+      }
+      onChange(toCoordinate(coords.latitude), toCoordinate(coords.longitude));
+    } catch {
+      // Location services off, or no fix in time.
+      setMessage(t('listing.pin.failed'));
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  return (
+    <View className="gap-2">
+      <Text className="text-left text-sm text-text-2 font-medium">{t('listing.pin.title')}</Text>
+      <Text className="text-left text-sm leading-6 text-muted">
+        {pinned ? t('listing.pin.saved') : t('listing.pin.hint')}
+      </Text>
+      {message ? (
+        <Text className="text-left text-sm text-error" accessibilityLiveRegion="polite">
+          {message}
+        </Text>
+      ) : null}
+      <Button
+        title={pinned ? t('listing.pin.update') : t('listing.pin.use')}
+        icon="locate-outline"
+        variant="secondary"
+        onPress={locate}
+        loading={locating}
+      />
+      {pinned ? (
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Button
+              title={t('property.openInMaps')}
+              variant="link"
+              onPress={() =>
+                openLink(
+                  mapsUrl({
+                    location: {
+                      latitude: Number(latitude),
+                      longitude: Number(longitude),
+                      address: '',
+                      city: '',
+                      governorate: '',
+                    },
+                  }),
+                )
+              }
+            />
+          </View>
+          {canRemove ? (
+            <View className="flex-1">
+              <Button
+                title={t('listing.pin.remove')}
+                variant="link"
+                onPress={() => onChange('', '')}
+              />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}

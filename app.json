@@ -69,6 +69,16 @@
           "cameraPermission": "يحتاج سكنلي إلى الكاميرا لتصوير عقارك للإعلان.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "يستخدم سكنلي موقعك لتحديد مكان عقارك على الخريطة عندما تضيف إعلانًا وأنت فيه.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "locationFullAccuracyPermission": false
+        }
       ]
     ],
     "experiments": {

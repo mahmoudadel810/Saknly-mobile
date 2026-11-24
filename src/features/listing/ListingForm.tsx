@@ -27,6 +27,7 @@ import {
   toDigits,
 } from './draft';
 import { removedImages } from './formData';
+import { LocationPin } from './LocationPin';
 import { MonthPicker, yearsFrom } from './MonthPicker';
 import { PhotoPicker } from './PhotoPicker';
 import type { LocalPhoto } from './photos';
@@ -472,6 +473,15 @@ export function ListingForm({
         ) : null}
         {field('district', t('listing.district'), { maxLength: 50 })}
         {field('address', t('listing.address'), { maxLength: 300 })}
+        <LocationPin
+          latitude={v.latitude}
+          longitude={v.longitude}
+          onChange={(latitude, longitude) => {
+            set('latitude', latitude);
+            set('longitude', longitude);
+          }}
+          canRemove={!(editing && initial.latitude)}
+        />
       </Section>
 
       <Section title={t('listing.sections.photos')}>
