@@ -363,7 +363,8 @@ describe('finding the place', () => {
     expect(await screen.findByRole('button', { name: 'Move the pin to my location' })).toBeTruthy();
     expect(mock.history.get.find((r) => r.url === '/geo/search')?.params).toMatchObject({
       query: 'شارع الجمهورية',
-      language: 'en',
+      // Arabic even in the English app: listings are stored in Arabic
+      language: 'ar',
     });
     // governorate and city chosen, the address filled in
     expect(screen.getByRole('button', { name: 'المنوفية' }).props.accessibilityState).toMatchObject(
@@ -384,12 +385,17 @@ describe('finding the place', () => {
       expect(screen.getByLabelText('Street address (optional)').props.value).toBe(geoPlace.address),
     );
 
+    // the governorate and city came with it
+    expect(
+      screen.getByRole('button', { name: 'شبين الكوم' }).props.accessibilityState,
+    ).toMatchObject({ selected: true });
+
+    // the place is complete now: moving the pin keeps the typed address and spends no lookup
     await type('Street address (optional)', '12 شارع البحر');
     await press('Move the pin to my location');
-    await waitFor(() =>
-      expect(mock.history.get.filter((r) => r.url === '/geo/reverse')).toHaveLength(2),
-    );
+    await screen.findByRole('button', { name: 'Move the pin to my location' });
     expect(screen.getByLabelText('Street address (optional)').props.value).toBe('12 شارع البحر');
+    expect(mock.history.get.filter((r) => r.url === '/geo/reverse')).toHaveLength(1);
   });
 
   it('says so when the search is unavailable or used too much', async () => {

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFormik } from 'formik';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
@@ -150,6 +150,11 @@ export function ListingForm({
   };
 
   const v = form.values;
+  // The latest committed values, for callbacks that answer later (an address lookup).
+  const valuesRef = useRef(v);
+  useEffect(() => {
+    valuesRef.current = v;
+  }, [v]);
   const set = <K extends keyof ListingDraft>(key: K, value: ListingDraft[K]) =>
     form.setFieldValue(key, value);
   const fieldError = (key: keyof ListingDraft) =>
@@ -494,14 +499,22 @@ export function ListingForm({
             form.setFieldValue('latitude', latitude, false);
             form.setFieldValue('longitude', longitude);
           }}
-          // Only what the owner left empty: a typed address or a chosen city is never replaced.
+          needsPlace={!v.governorate || !v.city || !v.address.trim()}
+          // Only what the owner left empty, read from the latest values (the address can arrive
+          // after the owner typed): a typed address or a chosen city is never replaced, and
+          // nothing from another governorate is filled in.
           onPlace={(place) => {
             const { governorate, city } = areaOf(place);
-            const values = form.values;
-            const sameGovernorate = !values.governorate || values.governorate === governorate;
-            if (!values.governorate && governorate) set('governorate', governorate);
-            if (!values.city && city && sameGovernorate) set('city', city);
-            if (!values.address.trim()) set('address', place.address.slice(0, LIMITS.address));
+            const values = valuesRef.current;
+            if (values.governorate && values.governorate !== governorate) return;
+            const changes: [keyof ListingDraft, string][] = [];
+            if (!values.governorate && governorate) changes.push(['governorate', governorate]);
+            if (!values.city && city) changes.push(['city', city]);
+            if (!values.address.trim() && place.address)
+              changes.push(['address', place.address.slice(0, LIMITS.address)]);
+            changes.forEach(([key, value], i) =>
+              form.setFieldValue(key, value, i === changes.length - 1),
+            );
           }}
         />
       </Section>

@@ -372,6 +372,15 @@ describe('a GeoLink place in the form', () => {
     });
     // spelling differences (أ/ا, ة/ه)
     expect(areaOf(place('محافظه الاسكندريه', '')).governorate).toBe('الإسكندرية');
+    // the district wins over a street named after another city
+    expect(areaOf(place('محافظة القاهرة', 'قسم المعادي', 'شارع مصر الجديدة، المعادي')).city).toBe(
+      'المعادي',
+    );
+    // a place with missing parts doesn't throw
+    expect(areaOf({ ...place('محافظة القاهرة', ''), district: undefined as never })).toEqual({
+      governorate: 'القاهرة',
+      city: undefined,
+    });
     // nothing it can't place
     expect(areaOf(place('Unknown', ''))).toEqual({});
     expect(areaOf(place('محافظة المنوفية', 'مكان غير معروف')).city).toBeUndefined();
