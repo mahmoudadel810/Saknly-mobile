@@ -26,6 +26,10 @@ interface PhotoPickerProps {
   /** Photos already on the listing (edit only). */
   existing: PropertyImage[];
   onRemoveExisting: (image: PropertyImage) => void;
+  /** Whether the cover is the first new photo rather than the first existing one. */
+  coverIsNew: boolean;
+  onCoverExisting: (image: PropertyImage) => void;
+  onCoverNew: (photo: LocalPhoto) => void;
   photos: LocalPhoto[];
   onChange: (photos: LocalPhoto[]) => void;
   error?: string;
@@ -34,6 +38,9 @@ interface PhotoPickerProps {
 export function PhotoPicker({
   existing,
   onRemoveExisting,
+  coverIsNew,
+  onCoverExisting,
+  onCoverNew,
   photos,
   onChange,
   error,
@@ -88,20 +95,21 @@ export function PhotoPicker({
     if (!result.canceled) await addAssets(result.assets);
   };
 
-  // The cover is shown first: on an edit that is the first kept photo (sent with isMain),
-  // and a new upload becomes the cover only when no old photo is kept.
-  const tiles = [
-    ...existing.map((image) => ({
-      key: image.publicId,
-      uri: image.url,
-      remove: () => onRemoveExisting(image),
-    })),
-    ...photos.map((photo) => ({
-      key: photo.uri,
-      uri: photo.uri,
-      remove: () => onChange(photos.filter((p) => p !== photo)),
-    })),
-  ];
+  // The cover is shown first: the first kept photo, or the first new one when that was chosen
+  // (or nothing old is kept). The star on any other photo makes it the cover.
+  const oldTiles = existing.map((image) => ({
+    key: image.publicId,
+    uri: image.url,
+    remove: () => onRemoveExisting(image),
+    makeCover: () => onCoverExisting(image),
+  }));
+  const newTiles = photos.map((photo) => ({
+    key: photo.uri,
+    uri: photo.uri,
+    remove: () => onChange(photos.filter((p) => p !== photo)),
+    makeCover: () => onCoverNew(photo),
+  }));
+  const tiles = coverIsNew ? [...newTiles, ...oldTiles] : [...oldTiles, ...newTiles];
 
   return (
     <View className="gap-3">
@@ -122,6 +130,21 @@ export function PhotoPicker({
             >
               <Ionicons name="close" size={16} color="#FFFFFF" />
             </Pressable>
+            {i === 0 ? (
+              <View className="absolute bottom-1 start-1 rounded-full bg-primary px-2 py-0.5">
+                <Text className="text-xs text-on-primary font-semibold">{t('listing.cover')}</Text>
+              </View>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('listing.makeCover', { index: i + 1 })}
+                onPress={tile.makeCover}
+                hitSlop={6}
+                className="absolute bottom-1 start-1 h-7 w-7 items-center justify-center rounded-full bg-black/60"
+              >
+                <Ionicons name="star-outline" size={15} color="#FFFFFF" />
+              </Pressable>
+            )}
           </View>
         ))}
         {preparing ? (

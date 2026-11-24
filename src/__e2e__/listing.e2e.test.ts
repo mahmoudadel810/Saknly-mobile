@@ -12,8 +12,16 @@ import { api, setApiToken } from '@/api/client';
 import { listingsApi } from '@/api/listings';
 import { startSession } from '@/auth/session';
 import { publicationState } from '@/features/account/publication';
-import { EMPTY_DRAFT, type ListingDraft, toListingFields } from '@/features/listing/draft';
+import {
+  draftFromProperty,
+  EMPTY_DRAFT,
+  type ListingDraft,
+  monthOf,
+  toListingFields,
+} from '@/features/listing/draft';
 import { toPhotoUpdateFields } from '@/features/listing/formData';
+import { coverFirst, formatMoney } from '@/features/properties/format';
+import { listingTerms } from '@/features/properties/terms';
 
 const MEDIA = process.env.E2E_MEDIA_URL || 'http://127.0.0.1:5057';
 // A 96×72 JPEG made by the server's own sharp.
@@ -217,5 +225,141 @@ describe('edit and delete', () => {
     expect((await myPropertiesApi.list()).map((p) => p._id)).not.toContain(created._id);
     const { deleted } = await uploads();
     expect(photoIds.every((id) => deleted.includes(id))).toBe(true);
+  });
+});
+
+describe('sale, rental and student terms', () => {
+  const ids = (images: PropertyImage[]) => images.map((image) => image.publicId);
+  const onSale: ListingDraft = {
+    ...rental,
+    category: 'sale',
+    title: 'شقة للبيع بالتقسيط',
+    price: '1100000',
+    area: '120',
+  };
+
+  it('stores an installment plan and the delivery month, and keeps the plan on a cash edit', async () => {
+    await signInAs('fatma.hassan');
+    const sale = await listingsApi.create(
+      body(
+        toListingFields({
+          ...onSale,
+          ownershipType: 'resale',
+          propertyStatus: 'underConstruction',
+          paymentMethod: 'installment',
+          downPayment: '500000',
+          installmentYears: '5',
+          minInstallment: '9000',
+          deliveryMonth: '2028-03',
+          deliveryTerms: 'نصف تشطيب',
+        }),
+        'images',
+        2,
+      ),
+    );
+    expect(sale).toMatchObject({
+      category: 'sale',
+      ownershipType: 'resale',
+      propertyStatus: 'underConstruction',
+      paymentMethod: 'installment',
+      downPayment: 500000,
+      installmentPeriodInYears: 5,
+      minInstallmentAmount: 9000,
+      deliveryTerms: 'نصف تشطيب',
+    });
+    expect(monthOf(sale.deliveryDate)).toBe('2028-03');
+    // what the edit screen loads is what was sent
+    expect(draftFromProperty(sale)).toMatchObject({
+      paymentMethod: 'installment',
+      downPayment: '500000',
+      installmentYears: '5',
+      deliveryMonth: '2028-03',
+    });
+
+    // Switching to cash leaves the old figures on the server (an edit can't clear a field),
+    // which is why the listing page hides them for a cash sale.
+    const cash = await listingsApi.update(
+      sale._id,
+      body(
+        toListingFields({ ...onSale, paymentMethod: 'cash' }).filter(([k]) => k !== 'category'),
+        'newImages',
+        0,
+      ),
+    );
+    expect(cash.paymentMethod).toBe('cash');
+    expect(listingTerms(cash).map((row) => row.value)).not.toContain(formatMoney(500000));
+
+    // A new photo chosen as the cover: no kept photo is flagged, so the server picks it.
+    const [first, second] = sale.images;
+    const updated = await listingsApi.update(
+      sale._id,
+      body(toPhotoUpdateFields([first, second], [], true), 'newImages', 1),
+    );
+    const cover = updated.images.find((image) => image.isMain);
+    expect(updated.images).toHaveLength(3);
+    expect(ids([first, second])).not.toContain(cover?.publicId);
+    expect(coverFirst(updated.images)[0].publicId).toBe(cover?.publicId);
+    await listingsApi.remove(sale._id);
+  });
+
+  it('stores the move-in month, the bills and the house rules of a rental', async () => {
+    await signInAs('fatma.hassan');
+    const rent = await listingsApi.create(
+      body(
+        toListingFields({
+          ...rental,
+          availableMonth: '2027-01',
+          utilitiesIncluded: true,
+          petsAllowed: true,
+          rulesOther: 'للعائلات فقط',
+        }),
+        'images',
+        1,
+      ),
+    );
+    expect(rent).toMatchObject({
+      utilities: { included: true },
+      rules: { pets: true, parties: false, other: 'للعائلات فقط' },
+    });
+    expect(monthOf(rent.availableFrom)).toBe('2027-01');
+    await listingsApi.remove(rent._id);
+  });
+
+  it('stores the stay and the nearby universities of student housing', async () => {
+    await signInAs('fatma.hassan');
+    const student = await listingsApi.create(
+      body(
+        toListingFields({
+          ...rental,
+          category: 'student',
+          roomType: 'private',
+          studentsPerRoom: '1',
+          genderPolicy: 'male',
+          semester: 'academic-year',
+          academicYearOnly: true,
+          universities: [
+            { name: 'جامعة المنوفية', distanceInKm: '1.5' },
+            { name: '', distanceInKm: '9' },
+            { name: 'المعهد العالي', distanceInKm: '' },
+          ],
+        }),
+        'images',
+        1,
+      ),
+    );
+    expect(student.studentHousingDetails).toMatchObject({
+      semester: 'academic-year',
+      academicYearOnly: true,
+    });
+    expect(
+      student.studentHousingDetails?.nearbyUniversities?.map(({ name, distanceInKm }) => ({
+        name,
+        distanceInKm,
+      })),
+    ).toEqual([
+      { name: 'جامعة المنوفية', distanceInKm: 1.5 },
+      { name: 'المعهد العالي', distanceInKm: undefined },
+    ]);
+    await listingsApi.remove(student._id);
   });
 });

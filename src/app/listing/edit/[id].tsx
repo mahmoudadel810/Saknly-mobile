@@ -6,6 +6,7 @@ import { ErrorView, LoadingView } from '@/components/StateViews';
 import { draftFromProperty } from '@/features/listing/draft';
 import { ListingForm } from '@/features/listing/ListingForm';
 import { useUpdateListing } from '@/features/listing/queries';
+import { coverFirst } from '@/features/properties/format';
 import { useProperty } from '@/features/properties/queries';
 import { haptics } from '@/utils/haptics';
 
@@ -23,7 +24,7 @@ export default function EditListingScreen() {
     <ListingForm
       editing
       initial={draftFromProperty(property.data)}
-      existingImages={property.data.images}
+      existingImages={coverFirst(property.data.images)}
       onSubmit={async (submit) => {
         await update.mutateAsync(submit);
         haptics.success();

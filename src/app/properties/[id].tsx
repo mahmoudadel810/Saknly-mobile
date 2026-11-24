@@ -22,12 +22,14 @@ import { useDeleteListing } from '@/features/listing/queries';
 import { callUrl, mapsUrl, whatsAppUrl } from '@/features/properties/contact';
 import { categoryLabel, formatPrice, placeLabel, statusLabel } from '@/features/properties/format';
 import { Gallery } from '@/features/properties/Gallery';
+import { InstallmentCalculator } from '@/features/properties/InstallmentCalculator';
 import { PropertyCard } from '@/features/properties/PropertyCard';
 import {
   useProperty,
   usePropertyComments,
   useSimilarProperties,
 } from '@/features/properties/queries';
+import { listingTerms, studentTerms, type TermRow } from '@/features/properties/terms';
 import { useThemeColors } from '@/theme/colors';
 import { elevation } from '@/theme/elevation';
 import { describeError } from '@/utils/errors';
@@ -55,6 +57,8 @@ export default function PropertyScreen() {
   const whatsappLink = whatsapp ? whatsAppUrl(whatsapp) : null;
   const ownerName = typeof p.owner === 'object' ? p.owner?.userName : undefined;
   const isPublic = p.isApproved !== false && p.isActive !== false;
+  const terms = listingTerms(p);
+  const student = studentTerms(p);
 
   return (
     <View className="flex-1 bg-bg">
@@ -128,6 +132,42 @@ export default function PropertyScreen() {
                 </View>
               ))}
             </View>
+          </Block>
+        ) : null}
+
+        {terms.length ? (
+          <Block title={t('property.terms.title')} icon="reader-outline">
+            <Rows rows={terms} />
+          </Block>
+        ) : null}
+
+        {student.rows.length || student.universities.length ? (
+          <Block title={t('property.terms.student')} icon="school-outline">
+            <Rows rows={student.rows} />
+            {student.universities.length ? (
+              <View className="gap-2">
+                <Text className="text-left text-sm text-text-2">
+                  {t('property.terms.universities')}
+                </Text>
+                {student.universities.map((university) => (
+                  <View key={university} className="flex-row items-center gap-2">
+                    <Ionicons name="location-outline" size={16} color={colors.primary} />
+                    <Text className="flex-1 text-left text-base text-text">{university}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </Block>
+        ) : null}
+
+        {/* On every sale, as on the web: a cash listing can still be bought with a bank loan. */}
+        {p.category === 'sale' && p.price > 0 ? (
+          <Block title={t('property.calculator.title')} icon="calculator-outline">
+            <InstallmentCalculator
+              price={p.price}
+              downPayment={p.downPayment}
+              years={p.installmentPeriodInYears}
+            />
           </Block>
         ) : null}
 
@@ -357,6 +397,20 @@ function CommentComposer({ propertyId }: { propertyId: string }) {
         loading={add.isPending}
         onPress={() => add.mutate(text.trim(), { onSuccess: () => setText('') })}
       />
+    </View>
+  );
+}
+
+/** Label and value on one line each, the value at the end (it can wrap under a long label). */
+function Rows({ rows }: { rows: TermRow[] }) {
+  return (
+    <View className="gap-3">
+      {rows.map((row) => (
+        <View key={row.label} className="flex-row flex-wrap justify-between gap-x-4 gap-y-0.5">
+          <Text className="text-left text-sm text-text-2">{row.label}</Text>
+          <Text className="flex-shrink text-left text-base text-text font-medium">{row.value}</Text>
+        </View>
+      ))}
     </View>
   );
 }

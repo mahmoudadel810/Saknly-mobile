@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-import type { Property, PropertyCategory } from '@/api/browseTypes';
+import type { PaymentMethod, Property, PropertyCategory, Semester } from '@/api/browseTypes';
 import { AMENITIES, CITIES_BY_GOVERNORATE, governorateOf } from '@/constants/property';
 import i18n from '@/i18n';
 
@@ -24,18 +24,43 @@ export interface ListingDraft {
   totalFloors: string;
   amenities: string[];
   isNegotiable: boolean;
+  // sale
+  ownershipType: 'firstOwner' | 'resale';
+  propertyStatus: 'ready' | 'underConstruction';
+  paymentMethod: PaymentMethod;
+  downPayment: string;
+  installmentYears: string;
+  minInstallment: string;
+  /** "YYYY-MM", or "" for none; sent as the first of that month. */
+  deliveryMonth: string;
+  deliveryTerms: string;
   // rent and student
   leaseDuration: string;
   deposit: string;
+  /** "YYYY-MM", or "" for none. */
+  availableMonth: string;
+  utilitiesIncluded: boolean;
+  petsAllowed: boolean;
+  partiesAllowed: boolean;
+  rulesOther: string;
   // student
   roomType: '' | 'private' | 'shared' | 'dormitory';
   studentsPerRoom: string;
   genderPolicy: '' | 'male' | 'female' | 'mixed';
+  semester: '' | Semester;
+  academicYearOnly: boolean;
+  universities: University[];
   // contact
   contactName: string;
   contactPhone: string;
   contactWhatsapp: string;
   contactEmail: string;
+}
+
+export interface University {
+  name: string;
+  /** Kilometres, a decimal string ("1.5"). */
+  distanceInKm: string;
 }
 
 export const EMPTY_DRAFT: ListingDraft = {
@@ -55,18 +80,44 @@ export const EMPTY_DRAFT: ListingDraft = {
   totalFloors: '',
   amenities: [],
   isNegotiable: false,
+  // The web form's defaults.
+  ownershipType: 'firstOwner',
+  propertyStatus: 'ready',
+  paymentMethod: 'cash',
+  downPayment: '',
+  installmentYears: '',
+  minInstallment: '',
+  deliveryMonth: '',
+  deliveryTerms: '',
   leaseDuration: '',
   deposit: '',
+  availableMonth: '',
+  utilitiesIncluded: false,
+  petsAllowed: false,
+  partiesAllowed: false,
+  rulesOther: '',
   roomType: '',
   studentsPerRoom: '',
   genderPolicy: '',
+  semester: '',
+  academicYearOnly: false,
+  universities: [],
   contactName: '',
   contactPhone: '',
   contactWhatsapp: '',
   contactEmail: '',
 };
 
-export const LIMITS = { title: 70, description: 400, address: 300, district: 50, contactName: 25 };
+export const LIMITS = {
+  title: 70,
+  description: 400,
+  address: 300,
+  district: 50,
+  contactName: 25,
+  terms: 300,
+  university: 100,
+};
+export const MAX_UNIVERSITIES = 5;
 const MAX_PRICE = 500_000_000;
 
 // Area ranges per type (the web form's client rule).
@@ -88,6 +139,14 @@ export const toDigits = (value: string) =>
     .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
     .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
     .replace(/\D/g, '');
+
+/** Like toDigits, but keeps one decimal point (the Arabic separator ٫ counts as one): "١٫٥" -> "1.5". */
+export const toDecimal = (value: string) => {
+  const [whole, ...rest] = value.replace(/[٫,]/g, '.').split('.');
+  return rest.length ? `${toDigits(whole)}.${toDigits(rest.join(''))}` : toDigits(whole);
+};
+
+const installments = (method: string) => method !== 'cash';
 
 const PHONE = /^0\d{9,10}$/;
 const MOBILE = /^01\d{9}$/;
@@ -162,6 +221,50 @@ export const listingSchema = yup.object({
         ),
   }),
   deposit: number().test('max', t('listing.errors.price'), (v) => !v || Number(v) <= MAX_PRICE),
+  downPayment: number().when(['category', 'paymentMethod'], {
+    is: (category: string, method: string) => category === 'sale' && installments(method),
+    then: (s) =>
+      s.required(required).test('price', t('listing.errors.downPayment'), function (v) {
+        const price = Number(this.parent.price);
+        return !v || !price || Number(v) < price;
+      }),
+  }),
+  installmentYears: number().when(['category', 'paymentMethod'], {
+    is: (category: string, method: string) => category === 'sale' && installments(method),
+    then: (s) =>
+      s
+        .required(required)
+        .test(
+          'range',
+          t('listing.errors.installmentYears'),
+          (v) => !v || (Number(v) >= 1 && Number(v) <= 30),
+        ),
+  }),
+  minInstallment: number().test(
+    'max',
+    t('listing.errors.price'),
+    (v) => !v || Number(v) <= MAX_PRICE,
+  ),
+  deliveryTerms: yup
+    .string()
+    .trim()
+    .max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
+  rulesOther: yup
+    .string()
+    .trim()
+    .max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
+  universities: yup.array(
+    yup.object({
+      name: yup
+        .string()
+        .trim()
+        .max(LIMITS.university, t('validation.maxChars', { max: LIMITS.university })),
+      distanceInKm: yup
+        .string()
+        .matches(/^\d*(\.\d+)?$/, t('listing.errors.distance'))
+        .test('max', t('listing.errors.distance'), (v) => !v || Number(v) <= 100),
+    }),
+  ),
   roomType: yup.string().when('category', { is: 'student', then: (s) => s.required(required) }),
   studentsPerRoom: yup
     .string()
@@ -219,9 +322,26 @@ export const toListingFields = (draft: ListingDraft): [string, string][] => {
   add('contactInfo[whatsapp]', draft.contactWhatsapp);
   fields.push(['isNegotiable', String(draft.isNegotiable)]);
   draft.amenities.forEach((amenity) => fields.push(['amenities[]', amenity]));
+  if (draft.category === 'sale') {
+    add('ownershipType', draft.ownershipType);
+    add('propertyStatus', draft.propertyStatus);
+    add('paymentMethod', draft.paymentMethod);
+    if (installments(draft.paymentMethod)) {
+      add('downPayment', draft.downPayment);
+      add('installmentPeriodInYears', draft.installmentYears);
+      add('minInstallmentAmount', draft.minInstallment);
+    }
+    add('deliveryDate', monthToDate(draft.deliveryMonth));
+    add('deliveryTerms', draft.deliveryTerms);
+  }
   if (isRental(draft.category)) {
     add('leaseDuration', draft.leaseDuration);
     add('deposit', draft.deposit);
+    add('availableFrom', monthToDate(draft.availableMonth));
+    fields.push(['utilities[included]', String(draft.utilitiesIncluded)]);
+    fields.push(['rules[pets]', String(draft.petsAllowed)]);
+    fields.push(['rules[parties]', String(draft.partiesAllowed)]);
+    add('rules[other]', draft.rulesOther);
   }
   if (draft.category === 'student') {
     fields.push(['isStudentFriendly', 'true']);
@@ -229,11 +349,27 @@ export const toListingFields = (draft: ListingDraft): [string, string][] => {
     add('studentHousingDetails[roomType]', draft.roomType);
     add('studentHousingDetails[studentsPerRoom]', draft.studentsPerRoom);
     add('studentHousingDetails[genderPolicy]', draft.genderPolicy);
+    add('studentHousingDetails[semester]', draft.semester);
+    fields.push(['studentHousingDetails[academicYearOnly]', String(draft.academicYearOnly)]);
+    // Rows without a name are dropped; the indexes stay consecutive for the server's parser.
+    draft.universities
+      .filter((u) => u.name.trim())
+      .forEach((u, i) => {
+        add(`studentHousingDetails[nearbyUniversities][${i}][name]`, u.name);
+        add(`studentHousingDetails[nearbyUniversities][${i}][distanceInKm]`, u.distanceInKm);
+      });
   }
   return fields;
 };
 
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value));
+
+/** "2028-03" -> "2028-03-01" (the server takes any date; the form picks a month). */
+export const monthToDate = (month: string) => (month ? `${month}-01` : '');
+
+/** An ISO date from the server -> "YYYY-MM". Read from the string, so no time zone can shift it. */
+export const monthOf = (iso: string | null | undefined) =>
+  iso && /^\d{4}-\d{2}/.test(iso) ? iso.slice(0, 7) : '';
 
 /** An existing listing as a draft, for editing. */
 export const draftFromProperty = (p: Property): ListingDraft => ({
@@ -253,11 +389,29 @@ export const draftFromProperty = (p: Property): ListingDraft => ({
   totalFloors: text(p.totalFloors),
   amenities: (p.amenities ?? []).filter((a) => (AMENITIES as readonly string[]).includes(a)),
   isNegotiable: !!p.isNegotiable,
+  ownershipType: p.ownershipType ?? EMPTY_DRAFT.ownershipType,
+  propertyStatus: p.propertyStatus ?? EMPTY_DRAFT.propertyStatus,
+  paymentMethod: p.paymentMethod ?? EMPTY_DRAFT.paymentMethod,
+  downPayment: text(p.downPayment),
+  installmentYears: text(p.installmentPeriodInYears),
+  minInstallment: text(p.minInstallmentAmount),
+  deliveryMonth: monthOf(p.deliveryDate),
+  deliveryTerms: text(p.deliveryTerms),
   leaseDuration: text(p.leaseDuration),
   deposit: text(p.deposit),
+  availableMonth: monthOf(p.availableFrom),
+  utilitiesIncluded: !!p.utilities?.included,
+  petsAllowed: !!p.rules?.pets,
+  partiesAllowed: !!p.rules?.parties,
+  rulesOther: text(p.rules?.other),
   roomType: p.studentHousingDetails?.roomType ?? '',
   studentsPerRoom: text(p.studentHousingDetails?.studentsPerRoom),
   genderPolicy: p.studentHousingDetails?.genderPolicy ?? '',
+  semester: p.studentHousingDetails?.semester ?? '',
+  academicYearOnly: !!p.studentHousingDetails?.academicYearOnly,
+  universities: (p.studentHousingDetails?.nearbyUniversities ?? [])
+    .filter((u) => u?.name)
+    .map((u) => ({ name: text(u.name), distanceInKm: text(u.distanceInKm) })),
   contactName: text(p.contactInfo?.name),
   contactPhone: text(p.contactInfo?.phone),
   contactWhatsapp: text(p.contactInfo?.whatsapp),

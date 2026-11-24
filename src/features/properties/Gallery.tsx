@@ -5,9 +5,12 @@ import { FlatList, useWindowDimensions, View } from 'react-native';
 
 import type { PropertyImage } from '@/api/browseTypes';
 import { useThemeColors } from '@/theme/colors';
+
+import { coverFirst } from './format';
 import { Text } from '@/components/Text';
 
-export function Gallery({ images }: { images: PropertyImage[] }) {
+export function Gallery({ images: all }: { images: PropertyImage[] }) {
+  const images = coverFirst(all);
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { width } = useWindowDimensions();

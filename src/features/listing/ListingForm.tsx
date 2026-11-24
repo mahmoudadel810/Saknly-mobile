@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import type { PropertyImage } from '@/api/browseTypes';
 import { Button } from '@/components/Button';
@@ -12,16 +13,30 @@ import { TextField } from '@/components/TextField';
 import { AMENITIES, GOVERNORATES, PROPERTY_TYPE_VALUES } from '@/constants/property';
 import { describeError } from '@/utils/errors';
 
-import { citiesOf, isShop, type ListingDraft, listingSchema, toDigits } from './draft';
+import { Text } from '@/components/Text';
+import { useThemeColors } from '@/theme/colors';
+
+import {
+  citiesOf,
+  isShop,
+  LIMITS,
+  type ListingDraft,
+  listingSchema,
+  MAX_UNIVERSITIES,
+  toDecimal,
+  toDigits,
+} from './draft';
+import { MonthPicker, yearsFrom } from './MonthPicker';
 import { PhotoPicker } from './PhotoPicker';
 import type { LocalPhoto } from './photos';
-import { Text } from '@/components/Text';
 
 export interface ListingSubmit {
   draft: ListingDraft;
   kept: PropertyImage[];
   removed: PropertyImage[];
   photos: LocalPhoto[];
+  /** The cover is the first new photo, not the first kept one (edit only). */
+  coverIsNew: boolean;
   onProgress: (fraction: number) => void;
 }
 
@@ -37,6 +52,14 @@ const CATEGORIES = ['sale', 'rent', 'student'] as const;
 const ROOM_TYPES = ['private', 'shared', 'dormitory'] as const;
 const GENDERS = ['male', 'female', 'mixed'] as const;
 const STUDENTS_PER_ROOM = ['1', '2', '3', '4'];
+const OWNERSHIP = ['firstOwner', 'resale'] as const;
+const CONDITIONS = ['ready', 'underConstruction'] as const;
+const PAYMENTS = ['cash', 'installment', 'cashOrInstallment'] as const;
+const SEMESTERS = ['fall', 'spring', 'summer', 'academic-year', 'full-year'] as const;
+const THIS_YEAR = new Date().getFullYear();
+// Delivery can be years away on an off-plan sale; a rental is available soon.
+const DELIVERY_YEARS = yearsFrom(THIS_YEAR, 8);
+const AVAILABLE_YEARS = yearsFrom(THIS_YEAR, 2);
 
 type TextKey = {
   [K in keyof ListingDraft]: ListingDraft[K] extends string ? K : never;
@@ -51,6 +74,9 @@ const NUMERIC: TextKey[] = [
   'totalFloors',
   'leaseDuration',
   'deposit',
+  'downPayment',
+  'installmentYears',
+  'minInstallment',
   'contactPhone',
   'contactWhatsapp',
 ];
@@ -62,8 +88,12 @@ export function ListingForm({
   onSubmit,
 }: ListingFormProps) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [kept, setKept] = useState(existingImages);
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
+  const [coverNew, setCoverNew] = useState(false);
+  // With no old photo kept, the first new one is the cover whatever was picked before.
+  const coverIsNew = photos.length > 0 && (coverNew || kept.length === 0);
   const [photoError, setPhotoError] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
@@ -82,7 +112,7 @@ export function ListingForm({
       }
       setProgress(0);
       try {
-        await onSubmit({ draft, kept, removed, photos, onProgress: setProgress });
+        await onSubmit({ draft, kept, removed, photos, coverIsNew, onProgress: setProgress });
       } catch (e) {
         setError(describeError(e));
       } finally {
@@ -122,6 +152,25 @@ export function ListingForm({
     />
   );
   const rental = v.category === 'rent' || v.category === 'student';
+  const installments = v.paymentMethod !== 'cash';
+  const multiline = (max: number) => ({
+    multiline: true,
+    maxLength: max,
+    textAlignVertical: 'top',
+    style: { minHeight: 80 },
+  });
+
+  const universityError = (index: number, key: 'name' | 'distanceInKm') => {
+    const errors = form.errors.universities as { [k: string]: string }[] | string | undefined;
+    return form.touched.universities && typeof errors === 'object'
+      ? errors[index]?.[key]
+      : undefined;
+  };
+  const setUniversity = (index: number, key: 'name' | 'distanceInKm', value: string) =>
+    set(
+      'universities',
+      v.universities.map((u, i) => (i === index ? { ...u, [key]: value } : u)),
+    );
 
   return (
     <Screen scroll>
@@ -134,7 +183,12 @@ export function ListingForm({
               key={category}
               label={t(`browse.kind.${category}`)}
               selected={v.category === category}
-              onPress={() => !editing && set('category', category)}
+              onPress={() => {
+                if (editing) return;
+                set('category', category);
+                // As on the web: student rooms usually include the bills, other rentals don't.
+                set('utilitiesIncluded', category === 'student');
+              }}
             />
           ))}
         </Choices>
@@ -151,9 +205,7 @@ export function ListingForm({
         </Choices>
         {field('title', t('listing.title'), { maxLength: 70 })}
         {field('description', t('listing.description'), {
-          multiline: true,
-          maxLength: 400,
-          textAlignVertical: 'top',
+          ...multiline(LIMITS.description),
           style: { minHeight: 110 },
         })}
       </Section>
@@ -196,10 +248,89 @@ export function ListingForm({
         </Choices>
       </Section>
 
+      {v.category === 'sale' ? (
+        <Section title={t('listing.sections.sale')}>
+          <Label text={t('listing.ownershipType')} />
+          <Choices>
+            {OWNERSHIP.map((value) => (
+              <Chip
+                key={value}
+                label={t(`listing.ownership.${value}`)}
+                selected={v.ownershipType === value}
+                onPress={() => set('ownershipType', value)}
+              />
+            ))}
+          </Choices>
+          <Label text={t('listing.propertyStatus')} />
+          <Choices>
+            {CONDITIONS.map((value) => (
+              <Chip
+                key={value}
+                label={t(`listing.statuses.${value}`)}
+                selected={v.propertyStatus === value}
+                onPress={() => set('propertyStatus', value)}
+              />
+            ))}
+          </Choices>
+          <Label text={t('listing.paymentMethod')} />
+          <Choices>
+            {PAYMENTS.map((value) => (
+              <Chip
+                key={value}
+                label={t(`listing.payments.${value}`)}
+                selected={v.paymentMethod === value}
+                onPress={() => set('paymentMethod', value)}
+              />
+            ))}
+          </Choices>
+          {installments ? (
+            <>
+              {field('downPayment', t('listing.downPayment'))}
+              {field('installmentYears', t('listing.installmentYears'), { maxLength: 2 })}
+              {field('minInstallment', t('listing.minInstallment'))}
+            </>
+          ) : null}
+          <MonthPicker
+            label={t('listing.deliveryDate')}
+            value={v.deliveryMonth}
+            onChange={(month) => set('deliveryMonth', month)}
+            years={DELIVERY_YEARS}
+          />
+          {field('deliveryTerms', t('listing.deliveryTerms'), multiline(LIMITS.terms))}
+        </Section>
+      ) : null}
+
       {rental ? (
         <Section title={t('listing.sections.rental')}>
           {field('leaseDuration', t('listing.leaseDuration'))}
           {field('deposit', t('listing.deposit'))}
+          <MonthPicker
+            label={t('listing.availableFrom')}
+            value={v.availableMonth}
+            onChange={(month) => set('availableMonth', month)}
+            years={AVAILABLE_YEARS}
+          />
+          <Choices>
+            <Chip
+              label={t('listing.utilitiesIncluded')}
+              selected={v.utilitiesIncluded}
+              onPress={() => set('utilitiesIncluded', !v.utilitiesIncluded)}
+            />
+            <Chip
+              label={t('listing.pets')}
+              selected={v.petsAllowed}
+              onPress={() => set('petsAllowed', !v.petsAllowed)}
+            />
+            <Chip
+              label={t('listing.parties')}
+              selected={v.partiesAllowed}
+              onPress={() => set('partiesAllowed', !v.partiesAllowed)}
+            />
+          </Choices>
+          {field('rulesOther', t('listing.rulesOther'), {
+            ...multiline(LIMITS.terms),
+            placeholder: t('listing.rulesPlaceholder'),
+          })}
         </Section>
       ) : null}
 
@@ -238,6 +369,71 @@ export function ListingForm({
               />
             ))}
           </Choices>
+          <Label text={t('listing.semester')} />
+          <Choices>
+            {SEMESTERS.map((semester) => (
+              <Chip
+                key={semester}
+                label={t(`listing.semesters.${semester}`)}
+                selected={v.semester === semester}
+                // Optional, so a second tap clears it.
+                onPress={() => set('semester', v.semester === semester ? '' : semester)}
+              />
+            ))}
+          </Choices>
+          <Chip
+            label={t('listing.academicYearOnly')}
+            selected={v.academicYearOnly}
+            onPress={() => set('academicYearOnly', !v.academicYearOnly)}
+          />
+          <Label text={t('listing.universities')} />
+          {v.universities.map((university, index) => (
+            <View key={index} className="flex-row items-start gap-2">
+              <View className="flex-[2]">
+                <TextField
+                  label={t('listing.universityName', { index: index + 1 })}
+                  value={university.name}
+                  onChangeText={(text) => setUniversity(index, 'name', text)}
+                  maxLength={LIMITS.university}
+                  error={universityError(index, 'name')}
+                />
+              </View>
+              <View className="flex-1">
+                <TextField
+                  label={t('listing.universityDistance')}
+                  value={university.distanceInKm}
+                  onChangeText={(text) => setUniversity(index, 'distanceInKm', toDecimal(text))}
+                  keyboardType="decimal-pad"
+                  maxLength={5}
+                  error={universityError(index, 'distanceInKm')}
+                />
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('listing.removeUniversity', { index: index + 1 })}
+                onPress={() =>
+                  set(
+                    'universities',
+                    v.universities.filter((_, i) => i !== index),
+                  )
+                }
+                hitSlop={8}
+                className="mt-8 h-11 w-11 items-center justify-center rounded-xl active:bg-surface-2"
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.error} />
+              </Pressable>
+            </View>
+          ))}
+          {v.universities.length < MAX_UNIVERSITIES ? (
+            <Button
+              title={t('listing.addUniversity')}
+              icon="add"
+              variant="secondary"
+              onPress={() =>
+                set('universities', [...v.universities, { name: '', distanceInKm: '' }])
+              }
+            />
+          ) : null}
         </Section>
       ) : null}
 
@@ -279,6 +475,15 @@ export function ListingForm({
         <PhotoPicker
           existing={kept}
           onRemoveExisting={(image) => setKept(kept.filter((k) => k !== image))}
+          coverIsNew={coverIsNew}
+          onCoverExisting={(image) => {
+            setKept([image, ...kept.filter((k) => k !== image)]);
+            setCoverNew(false);
+          }}
+          onCoverNew={(photo) => {
+            setPhotos([photo, ...photos.filter((p) => p !== photo)]);
+            setCoverNew(true);
+          }}
           photos={photos}
           onChange={(next) => {
             setPhotos(next);
