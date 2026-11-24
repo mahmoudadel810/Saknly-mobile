@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { useThemeColors } from '@/theme/colors';
 
 import type { FaqItem } from './usePages';
+import { Text } from '@/components/Text';
 
 /** Questions that open to show their answer, one at a time. */
 export function FaqList({ items }: { items: FaqItem[] }) {
@@ -24,7 +25,7 @@ export function FaqList({ items }: { items: FaqItem[] }) {
               onPress={() => setOpen(expanded ? null : index)}
               className="min-h-14 flex-row items-center gap-3 px-4 py-3 active:bg-surface-2"
             >
-              <Text className="flex-1 text-left text-base font-semibold text-text">
+              <Text className="flex-1 text-left text-base text-text font-semibold">
                 {item.question}
               </Text>
               <Ionicons

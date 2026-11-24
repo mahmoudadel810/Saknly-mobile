@@ -1,9 +1,31 @@
 // Same design tokens as Saknly-client (app/globals.css); values live in src/global.css.
+const plugin = require('tailwindcss/plugin');
+
+// IBM Plex Sans Arabic (the web app's font), embedded per weight by the expo-font plugin.
+// Android can't pick a bold face out of a custom family from fontWeight, so each weight class
+// selects its own font file instead. Keep these names in sync with src/theme/fonts.ts.
+const FONT_WEIGHTS = {
+  '.font-normal': 'IBMPlexSansArabic-Regular',
+  '.font-medium': 'IBMPlexSansArabic-Medium',
+  '.font-semibold': 'IBMPlexSansArabic-SemiBold',
+  '.font-bold': 'IBMPlexSansArabic-Bold',
+};
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   darkMode: 'media',
+  corePlugins: { fontWeight: false },
+  plugins: [
+    plugin(({ addUtilities }) =>
+      addUtilities(
+        Object.fromEntries(
+          Object.entries(FONT_WEIGHTS).map(([cls, family]) => [cls, { fontFamily: family }]),
+        ),
+      ),
+    ),
+  ],
   theme: {
     extend: {
       colors: {
@@ -32,5 +54,4 @@ module.exports = {
       },
     },
   },
-  plugins: [],
 };

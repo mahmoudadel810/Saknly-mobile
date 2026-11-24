@@ -164,6 +164,21 @@ Still to check on an emulator or phone: the screens themselves, the agency logos
 
 **Needs your read:** the privacy text is now a second policy, adapted from the web one, with a new section, "device type" where the web says "browser", and the date 23 November 2026. Phase 7 planned to reuse the web policy URL for the stores; decide which is the real one.
 
+### Design uplift (after Phase 5, branch `feat/design-uplift`)
+
+**Status:** done in code and tests; not seen on a device. What changed:
+
+- **Type:** IBM Plex Sans Arabic (4 weights, bundled through the `expo-font` config plugin) on every text through `components/Text.tsx`; React Native has no font inheritance, so nothing may import `Text` from `react-native` directly.
+- **Look:** shared `AuthHeader` and `TabHeader`, shadow tokens (`theme/elevation.ts`), larger buttons with an optional icon, icon tiles on `LinkRow`, and a new layout for Home and the property page.
+- **Language in the app** (Account > Preferences): Arabic, English or the device language. `supportsRTL` is gone from `app.json`; `i18n/direction.ts` sets the layout direction and reloads the app when it has to flip.
+- **Notifications** (`expo-notifications`, local only, no push server): offered once, right after an action a notification would follow up on, never at launch; after that the switch under Account is the way in. A tapped notification opens its `data.url`.
+- **Haptics** (`expo-haptics`) on hearts, language changes and saves.
+- **Text:** Arabic prices use Western digits (`ar-EG-u-nu-latn`), matching the counts beside them; room and bathroom counts use all six Arabic plural forms (2 → غرفتان / حمامان).
+- **Web preview:** `auth/tokenStorage.web.ts` keeps the token in `sessionStorage` (secure-store has no web version).
+- **Tests:** `jest.setup.ts` mocks `expo-notifications` with access already granted, so the primer never opens over a screen under test. `Button` and the chat suggestions now carry an `accessibilityLabel`, since their new icons would otherwise become part of their spoken name.
+
+**To check on a device:** the fonts load on both platforms (no fallback to the system font), the language switch reloads into the right direction, the notification prompt on Android 13+, and haptics.
+
 ### Phase 6: Admin (role `admin` only)
 
 **Status: skipped (decision, 2026-11-23).** The mobile app has no admin screens; admins use the web app. An admin who signs in on mobile gets the normal app (Account shows the role "Admin"). The original idea is kept below in case it is revived.

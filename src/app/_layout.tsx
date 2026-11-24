@@ -14,9 +14,16 @@ import { shouldRetry } from '@/api/client';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { takeReturnTo } from '@/auth/returnTo';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { syncDirectionOnStart } from '@/i18n/direction';
+import { useNotificationRouting } from '@/notifications';
+import { NotificationPrimer } from '@/notifications/NotificationPrimer';
 import { useThemeColors } from '@/theme/colors';
+import { fonts } from '@/theme/fonts';
 
 SplashScreen.preventAutoHideAsync();
+// Before the first render: a language whose direction doesn't match the running layout reloads
+// the app once, while the splash screen is still up.
+syncDirectionOnStart();
 
 // Where a blocked route (a guard turning false) sends the user.
 export const unstable_settings = { anchor: '(tabs)' };
@@ -35,6 +42,7 @@ function RootNavigator() {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const signedIn = status === 'signedIn';
+  useNotificationRouting(status !== 'loading');
 
   // After signing in from a screen that asked for it, go back there. Deferred a tick: the
   // guard's own redirect to the anchor runs after this effect and would otherwise win.
@@ -56,7 +64,7 @@ function RootNavigator() {
         headerShown: false,
         headerTintColor: colors.primary,
         headerStyle: { backgroundColor: colors.bg },
-        headerTitleStyle: { color: colors.text },
+        headerTitleStyle: { color: colors.text, fontFamily: fonts.semibold },
         headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.bg },
       }}
@@ -117,6 +125,7 @@ export default function RootLayout() {
             </View>
           </View>
           <StatusBar style="auto" />
+          <NotificationPrimer />
         </AuthProvider>
       </QueryClientProvider>
       <Toast />

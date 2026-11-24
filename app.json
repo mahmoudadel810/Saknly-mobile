@@ -40,8 +40,26 @@
       [
         "expo-localization",
         {
-          "supportsRTL": true,
           "supportedLocales": ["ar", "en"]
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/IBMPlexSansArabic-Regular.ttf",
+            "./assets/fonts/IBMPlexSansArabic-Medium.ttf",
+            "./assets/fonts/IBMPlexSansArabic-SemiBold.ttf",
+            "./assets/fonts/IBMPlexSansArabic-Bold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#0E5E57",
+          "defaultChannel": "default"
         }
       ],
       [

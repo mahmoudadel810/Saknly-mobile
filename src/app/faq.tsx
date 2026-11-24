@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { ContentPage } from '@/features/pages/ContentPage';
 import { FaqList } from '@/features/pages/FaqList';
 import { usePages } from '@/features/pages/usePages';
+import { Text } from '@/components/Text';
 
 export default function FaqScreen() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export default function FaqScreen() {
       <FaqList items={faq.items} />
       <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
         <View className="gap-0.5">
-          <Text accessibilityRole="header" className="text-lg font-semibold text-text">
+          <Text accessibilityRole="header" className="text-lg text-text font-semibold">
             {faq.moreTitle}
           </Text>
           <Text className="text-sm text-text-2">{faq.moreBody}</Text>

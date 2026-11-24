@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { clearGoogleAccount, getGoogleIdToken, isGoogleSignInEnabled } from '@/auth/google';
@@ -9,6 +9,7 @@ import { setReturnTo } from '@/auth/returnTo';
 import { describeError } from '@/utils/errors';
 
 import { Button } from './Button';
+import { Text } from '@/components/Text';
 
 interface GoogleButtonProps {
   /** Where to go after signing in (the screen that asked for sign-in). */

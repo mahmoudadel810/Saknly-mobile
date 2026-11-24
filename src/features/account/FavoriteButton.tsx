@@ -8,6 +8,7 @@ import { useSignInPrompt } from '@/auth/returnTo';
 import { useThemeColors } from '@/theme/colors';
 
 import { useFavoriteIds, useToggleFavorite } from './queries';
+import { haptics } from '@/utils/haptics';
 
 interface FavoriteButtonProps {
   property: Property;
@@ -33,6 +34,7 @@ export function FavoriteButton({ property, overPhoto = false }: FavoriteButtonPr
         if (status !== 'signedIn') return promptSignIn();
         // One request at a time per heart: overlapping add/remove could land out of order.
         if (toggle.isPending) return;
+        haptics.select();
         toggle.mutate({ property, favorite: !favorite });
       }}
       className={overPhoto ? 'h-9 w-9 items-center justify-center rounded-full bg-black/45' : 'p-1'}

@@ -3,6 +3,26 @@ jest.mock('expo-network', () => ({
   useNetworkState: jest.fn(() => ({ isConnected: true, isInternetReachable: true })),
 }));
 
+// Local notifications. Access is already granted, so the primer never opens over a screen under test.
+jest.mock('expo-notifications', () => ({
+  AndroidImportance: { HIGH: 4 },
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  getPermissionsAsync: jest.fn(async () => ({
+    granted: true,
+    canAskAgain: true,
+    status: 'granted',
+  })),
+  requestPermissionsAsync: jest.fn(async () => ({
+    granted: true,
+    canAskAgain: true,
+    status: 'granted',
+  })),
+  scheduleNotificationAsync: jest.fn(async () => 'notification-id'),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
 // The native Google sign-in module. Tests set `GoogleSignin.signIn` to what the account picker returns.
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: {

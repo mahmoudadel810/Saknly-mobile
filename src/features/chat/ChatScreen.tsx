@@ -6,9 +6,7 @@ import {
   FlatList,
   I18nManager,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
-  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -16,12 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MAX_QUESTION } from '@/api/chat';
 import { Button } from '@/components/Button';
-import { Chip } from '@/components/Chip';
 import { useThemeColors } from '@/theme/colors';
 import { describeError } from '@/utils/errors';
 
 import { type ChatMessage, prepareQuestion, showCounter } from './chat';
 import { type ChatFailureState, useChat } from './useChat';
+import { Text } from '@/components/Text';
 
 export function ChatScreen() {
   const { t } = useTranslation();
@@ -43,15 +41,19 @@ export function ChatScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={['top']}>
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View className="gap-0.5 border-b border-border px-5 pb-3 pt-4">
-          <Text accessibilityRole="header" className="text-left text-2xl font-bold text-text">
-            {t('chat.title')}
-          </Text>
-          <Text className="text-left text-sm text-text-2">{t('chat.disclaimer')}</Text>
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
+        <View className="flex-row items-center gap-3 border-b border-border px-5 pb-3 pt-3">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary">
+            <Ionicons name="sparkles" size={22} color={colors.onPrimary} />
+          </View>
+          <View className="flex-1 gap-0.5">
+            <Text accessibilityRole="header" className="text-left text-xl text-text font-bold">
+              {t('chat.title')}
+            </Text>
+            <Text numberOfLines={2} className="text-left text-xs leading-5 text-muted">
+              {t('chat.disclaimer')}
+            </Text>
+          </View>
         </View>
 
         <FlatList
@@ -65,18 +67,35 @@ export function ChatScreen() {
             if (messages.length > 0 || loading) listRef.current?.scrollToEnd({ animated: true });
           }}
           ListEmptyComponent={
-            <View className="my-auto items-center gap-2 px-2">
-              <Text className="text-lg font-semibold text-text">{t('chat.emptyTitle')}</Text>
-              <Text className="mb-3 text-center text-base text-text-2">{t('chat.emptyBody')}</Text>
-              <View className="flex-row flex-wrap justify-center gap-2">
+            <View className="my-auto items-center gap-3">
+              <View className="h-16 w-16 items-center justify-center rounded-3xl bg-primary-soft">
+                <Ionicons name="sparkles" size={30} color={colors.primary} />
+              </View>
+              <Text className="text-xl text-text font-bold">{t('chat.emptyTitle')}</Text>
+              <Text className="mb-2 text-center text-base leading-7 text-text-2">
+                {t('chat.emptyBody')}
+              </Text>
+              <View className="w-full gap-2">
                 {suggestions.map((suggestion) => (
-                  <Chip
+                  <Pressable
                     key={suggestion}
-                    label={suggestion}
+                    accessibilityRole="button"
+                    accessibilityLabel={suggestion}
                     onPress={() => {
                       if (!loading) void ask(suggestion);
                     }}
-                  />
+                    className="flex-row items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3.5 active:bg-surface-2"
+                  >
+                    <Ionicons name="search-outline" size={18} color={colors.primary} />
+                    <Text className="flex-1 text-left text-sm text-text font-medium">
+                      {suggestion}
+                    </Text>
+                    <Ionicons
+                      name={I18nManager.isRTL ? 'arrow-back' : 'arrow-forward'}
+                      size={16}
+                      color={colors.muted}
+                    />
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -116,7 +135,7 @@ export function ChatScreen() {
               maxLength={MAX_QUESTION}
               textAlignVertical="top"
               style={{ maxHeight: 120 }}
-              className="min-h-12 flex-1 rounded-2xl border border-border bg-field px-4 py-3 text-base text-text"
+              className="min-h-12 flex-1 rounded-3xl border border-border bg-field px-4 py-3 text-base text-text font-normal"
             />
             <Pressable
               accessibilityRole="button"
@@ -145,22 +164,36 @@ export function ChatScreen() {
 
 function Bubble({ message }: { message: ChatMessage }) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const mine = message.role === 'user';
+  const label = `${mine ? t('chat.you') : t('chat.assistant')}: ${message.text}`;
+  if (mine) {
+    return (
+      <View className="max-w-[85%] self-end rounded-3xl rounded-ee-md bg-primary px-4 py-3">
+        <Text
+          selectable
+          accessibilityLabel={label}
+          className="text-left text-base leading-7 text-on-primary"
+        >
+          {message.text}
+        </Text>
+      </View>
+    );
+  }
   return (
-    <View
-      className={`max-w-[85%] rounded-2xl border px-3.5 py-2.5 ${
-        mine
-          ? 'self-end border-transparent bg-primary-soft'
-          : 'self-start border-border bg-surface-2'
-      }`}
-    >
-      <Text
-        selectable
-        accessibilityLabel={`${mine ? t('chat.you') : t('chat.assistant')}: ${message.text}`}
-        className="text-left text-base text-text"
-      >
-        {message.text}
-      </Text>
+    <View className="max-w-[90%] flex-row items-end gap-2 self-start">
+      <View className="h-7 w-7 items-center justify-center rounded-full bg-primary-soft">
+        <Ionicons name="sparkles" size={14} color={colors.primary} />
+      </View>
+      <View className="flex-shrink rounded-3xl rounded-es-md border border-border bg-surface px-4 py-3">
+        <Text
+          selectable
+          accessibilityLabel={label}
+          className="text-left text-base leading-7 text-text"
+        >
+          {message.text}
+        </Text>
+      </View>
     </View>
   );
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { ColorValue } from 'react-native';
 
 import { useThemeColors } from '@/theme/colors';
+import { fonts } from '@/theme/fonts';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type TabIconProps = { color: ColorValue; focused: boolean; size: number };
@@ -32,6 +33,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        tabBarLabelStyle: { fontFamily: fonts.medium, fontSize: 11 },
       }}
     >
       <Tabs.Screen

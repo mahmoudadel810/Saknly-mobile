@@ -3,17 +3,19 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { setReturnTo } from '@/auth/returnTo';
 import { loginSchema } from '@/auth/schemas';
+import { AuthHeader } from '@/components/AuthHeader';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { describeError } from '@/utils/errors';
+import { Text } from '@/components/Text';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -45,10 +47,7 @@ export default function LoginScreen() {
 
   return (
     <Screen scroll>
-      <View className="gap-1">
-        <Text className="text-3xl font-bold text-text">{t('auth.loginTitle')}</Text>
-        <Text className="text-base text-text-2">{t('auth.loginSubtitle')}</Text>
-      </View>
+      <AuthHeader icon="home" title={t('auth.loginTitle')} subtitle={t('auth.loginSubtitle')} />
 
       <FormMessage message={error} />
       {unconfirmed ? (
@@ -85,7 +84,7 @@ export default function LoginScreen() {
       />
 
       <Link href="/forgot-password" asChild>
-        <Text className="text-sm font-medium text-primary">{t('auth.forgotPassword')}</Text>
+        <Text className="text-sm text-primary font-medium">{t('auth.forgotPassword')}</Text>
       </Link>
 
       <Button
@@ -100,7 +99,7 @@ export default function LoginScreen() {
       <View className="flex-row justify-center gap-1">
         <Text className="text-sm text-text-2">{t('auth.noAccount')}</Text>
         <Link href="/register" replace asChild>
-          <Text className="text-sm font-semibold text-primary">{t('home.createAccount')}</Text>
+          <Text className="text-sm text-primary font-semibold">{t('home.createAccount')}</Text>
         </Link>
       </View>
     </Screen>

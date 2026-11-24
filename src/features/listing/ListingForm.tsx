@@ -1,7 +1,7 @@
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { PropertyImage } from '@/api/browseTypes';
 import { Button } from '@/components/Button';
@@ -15,6 +15,7 @@ import { describeError } from '@/utils/errors';
 import { citiesOf, isShop, type ListingDraft, listingSchema, toDigits } from './draft';
 import { PhotoPicker } from './PhotoPicker';
 import type { LocalPhoto } from './photos';
+import { Text } from '@/components/Text';
 
 export interface ListingSubmit {
   draft: ListingDraft;
@@ -329,7 +330,7 @@ function Section({
 }) {
   return (
     <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
-      <Text accessibilityRole="header" className="text-lg font-bold text-text">
+      <Text accessibilityRole="header" className="text-lg text-text font-bold">
         {title}
       </Text>
       {error ? <Text className="text-sm text-error">{error}</Text> : null}
@@ -341,7 +342,7 @@ function Section({
 function Label({ text, error }: { text: string; error?: string }) {
   return (
     <View className="gap-0.5">
-      <Text className="text-sm font-medium text-text-2">{text}</Text>
+      <Text className="text-sm text-text-2 font-medium">{text}</Text>
       {error ? <Text className="text-sm text-error">{error}</Text> : null}
     </View>
   );

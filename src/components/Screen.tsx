@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ScreenProps extends PropsWithChildren {
@@ -12,10 +12,7 @@ export function Screen({ children, scroll = false }: ScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-bg">
       {scroll ? (
-        <KeyboardAvoidingView
-          className="flex-1"
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        <KeyboardAvoidingView className="flex-1" behavior="padding">
           <ScrollView contentContainerClassName="grow" keyboardShouldPersistTaps="handled">
             {content}
           </ScrollView>

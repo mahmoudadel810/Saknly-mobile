@@ -1,7 +1,8 @@
 import { useNetworkState } from 'expo-network';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from '@/components/Text';
 
 /**
  * A strip across the top while the phone has no connection. Both fields are undefined until the
@@ -23,7 +24,7 @@ export function OfflineBanner() {
       className="bg-text px-4 pb-2"
       style={{ paddingTop: insets.top + 8 }}
     >
-      <Text className="text-center text-sm font-medium text-bg">{t('common.offline')}</Text>
+      <Text className="text-center text-sm text-bg font-medium">{t('common.offline')}</Text>
     </View>
   );
 }

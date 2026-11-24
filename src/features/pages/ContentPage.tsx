@@ -1,9 +1,10 @@
 import type { PropsWithChildren } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
 
 import type { PageSection } from './usePages';
+import { Text } from '@/components/Text';
 
 interface ContentPageProps extends PropsWithChildren {
   title: string;
@@ -15,7 +16,7 @@ export function ContentPage({ title, intro, children }: ContentPageProps) {
   return (
     <Screen scroll>
       <View className="gap-1">
-        <Text accessibilityRole="header" className="text-left text-3xl font-bold text-text">
+        <Text accessibilityRole="header" className="text-left text-3xl text-text font-bold">
           {title}
         </Text>
         {intro ? <Text className="text-left text-base text-text-2">{intro}</Text> : null}
@@ -30,7 +31,7 @@ export function Sections({ sections }: { sections: PageSection[] }) {
     <View className="gap-6">
       {sections.map((section) => (
         <View key={section.title} className="gap-2">
-          <Text accessibilityRole="header" className="text-left text-xl font-semibold text-text">
+          <Text accessibilityRole="header" className="text-left text-xl text-text font-semibold">
             {section.title}
           </Text>
           {section.paragraphs.map((paragraph) => (

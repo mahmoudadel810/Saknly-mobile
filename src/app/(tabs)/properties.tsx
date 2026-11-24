@@ -8,7 +8,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -17,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { EmptyView, ErrorView, LoadingView } from '@/components/StateViews';
+import { TabHeader } from '@/components/TabHeader';
 import { FilterSheet } from '@/features/properties/FilterSheet';
 import {
   countActiveFilters,
@@ -27,7 +27,9 @@ import {
 import { PropertyCard } from '@/features/properties/PropertyCard';
 import { usePropertyList } from '@/features/properties/queries';
 import { useThemeColors } from '@/theme/colors';
+import { elevation } from '@/theme/elevation';
 import { useDebouncedValue } from '@/utils/useDebouncedValue';
+import { Text } from '@/components/Text';
 
 const KINDS: ListingKind[] = ['all', 'sale', 'rent', 'student'];
 const isKind = (value: unknown): value is ListingKind => KINDS.includes(value as ListingKind);
@@ -59,12 +61,15 @@ export default function PropertiesScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-bg">
-      <View className="gap-3 px-5 pb-3 pt-4">
-        <Text accessibilityRole="header" className="text-3xl font-bold text-text">
-          {t('browse.title')}
-        </Text>
+      <TabHeader
+        title={t('browse.title')}
+        subtitle={total !== undefined ? t('browse.results', { count: total }) : ' '}
+      >
         <View className="flex-row items-center gap-2">
-          <View className="flex-1 flex-row items-center gap-2 rounded-xl border border-border bg-field px-4">
+          <View
+            className="flex-1 flex-row items-center gap-2 rounded-2xl border border-border bg-surface px-4"
+            style={elevation.card}
+          >
             <Ionicons name="search" size={18} color={colors.muted} />
             <TextInput
               accessibilityLabel={t('browse.searchPlaceholder')}
@@ -73,20 +78,37 @@ export default function PropertiesScreen() {
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
-              className="flex-1 py-3 text-base text-text"
+              className="min-h-[50px] flex-1 text-base text-text font-normal"
             />
+            {searchText ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('browse.clearSearch')}
+                hitSlop={8}
+                onPress={() => setSearchText('')}
+              >
+                <Ionicons name="close-circle" size={18} color={colors.muted} />
+              </Pressable>
+            ) : null}
           </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('browse.filters')}
             accessibilityValue={activeFilters ? { text: String(activeFilters) } : undefined}
             onPress={() => setSheetOpen(true)}
-            className="h-12 w-12 items-center justify-center rounded-xl border border-border bg-surface"
+            className={`h-[50px] w-[50px] items-center justify-center rounded-2xl ${
+              activeFilters ? 'bg-primary' : 'border border-border bg-surface'
+            }`}
+            style={elevation.card}
           >
-            <Ionicons name="options-outline" size={22} color={colors.primary} />
+            <Ionicons
+              name="options-outline"
+              size={22}
+              color={activeFilters ? colors.onPrimary : colors.primary}
+            />
             {activeFilters ? (
-              <View className="absolute -end-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1">
-                <Text className="text-xs font-bold text-on-primary">{activeFilters}</Text>
+              <View className="absolute -end-1.5 -top-1.5 h-5 min-w-5 items-center justify-center rounded-full border-2 border-bg bg-accent px-1">
+                <Text className="text-[11px] text-accent-on font-bold">{activeFilters}</Text>
               </View>
             ) : null}
           </Pressable>
@@ -105,10 +127,7 @@ export default function PropertiesScreen() {
             />
           ))}
         </ScrollView>
-        {total !== undefined ? (
-          <Text className="text-sm text-muted">{t('browse.results', { count: total })}</Text>
-        ) : null}
-      </View>
+      </TabHeader>
 
       {list.isPending ? (
         <LoadingView />
@@ -133,7 +152,7 @@ export default function PropertiesScreen() {
             />
           }
           ListEmptyComponent={
-            <EmptyView message={t('browse.empty')}>
+            <EmptyView icon="search-outline" message={t('browse.empty')}>
               {activeFilters || search ? (
                 <Button
                   title={t('browse.clearFilters')}

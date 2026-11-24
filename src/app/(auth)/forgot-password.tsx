@@ -2,10 +2,10 @@ import { router } from 'expo-router';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text } from 'react-native';
 
 import { authApi } from '@/api/auth';
 import { emailSchema } from '@/auth/schemas';
+import { AuthHeader } from '@/components/AuthHeader';
 import { Button } from '@/components/Button';
 import { FormMessage } from '@/components/FormMessage';
 import { Screen } from '@/components/Screen';
@@ -32,8 +32,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <Screen scroll>
-      <Text className="text-3xl font-bold text-text">{t('auth.forgotTitle')}</Text>
-      <Text className="text-base text-text-2">{t('auth.forgotBody')}</Text>
+      <AuthHeader icon="key" title={t('auth.forgotTitle')} subtitle={t('auth.forgotBody')} />
       <FormMessage message={error} />
       <TextField
         label={t('common.email')}
