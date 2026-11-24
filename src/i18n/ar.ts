@@ -351,6 +351,7 @@ export const ar = {
       downPayment: 'المقدم أقل من السعر.',
       installmentYears: 'من سنة إلى 30 سنة.',
       distance: 'من 0 إلى 100 كم.',
+      month: 'اختر الشهر أيضًا.',
     },
   },
   account: {
@@ -538,6 +539,20 @@ export const ar = {
     title: 'الإعدادات',
     language: 'لغة التطبيق',
     notifications: 'الإشعارات',
+  },
+  units: {
+    months_zero: '{{count}} شهر',
+    months_one: 'شهر واحد',
+    months_two: 'شهران',
+    months_few: '{{count}} أشهر',
+    months_many: '{{count}} شهرًا',
+    months_other: '{{count}} شهر',
+    years_zero: '{{count}} سنة',
+    years_one: 'سنة واحدة',
+    years_two: 'سنتان',
+    years_few: '{{count}} سنوات',
+    years_many: '{{count}} سنة',
+    years_other: '{{count}} سنة',
   },
   dates: {
     months: [

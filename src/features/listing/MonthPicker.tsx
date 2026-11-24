@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
@@ -7,45 +6,33 @@ import { Text } from '@/components/Text';
 
 interface MonthPickerProps {
   label: string;
-  /** "YYYY-MM", or "" for no date. */
+  /** "YYYY-MM", "YYYY" while only the year is chosen (the form flags it), or "" for no date. */
   value: string;
   onChange: (month: string) => void;
   /** The years to offer, in order. */
   years: number[];
+  error?: string;
 }
 
 /**
  * A month and a year from chips: both dates on a listing (delivery, available from) are about
  * a month, and chips need no native picker, so they work the same in Expo Go and every build.
  */
-export function MonthPicker({ label, value, onChange, years }: MonthPickerProps) {
+export function MonthPicker({ label, value, onChange, years, error }: MonthPickerProps) {
   const { t } = useTranslation();
-  const [valueYear, valueMonth] = value ? value.split('-') : ['', ''];
-  // A year tapped before any month: shown as chosen, saved once a month is picked.
-  const [pendingYear, setPendingYear] = useState('');
-  const year = valueYear || pendingYear;
+  const [year = '', valueMonth = ''] = value ? value.split('-') : [];
   const months = t('dates.months', { returnObjects: true }) as unknown as string[];
   // An older listing's date can be in a year no longer offered; it still shows as chosen.
-  const shown =
-    valueYear && !years.includes(Number(valueYear)) ? [Number(valueYear), ...years] : years;
+  const shown = year && !years.includes(Number(year)) ? [Number(year), ...years] : years;
 
-  const pickYear = (next: string) => {
-    if (valueMonth) onChange(`${next}-${valueMonth}`);
-    else setPendingYear(next);
-  };
+  // Keeps the month when the year changes; a year alone stays in the form, which asks for a month.
+  const pickYear = (next: string) => onChange(valueMonth ? `${next}-${valueMonth}` : next);
 
   return (
     <View className="gap-2">
       <Text className="text-left text-sm text-text-2 font-medium">{label}</Text>
       <View className="flex-row flex-wrap gap-2">
-        <Chip
-          label={t('listing.noDate')}
-          selected={!value && !pendingYear}
-          onPress={() => {
-            setPendingYear('');
-            onChange('');
-          }}
-        />
+        <Chip label={t('listing.noDate')} selected={!value} onPress={() => onChange('')} />
         {shown.map((y) => (
           <Chip
             key={y}
@@ -64,15 +51,13 @@ export function MonthPicker({ label, value, onChange, years }: MonthPickerProps)
                 key={month}
                 label={name}
                 selected={valueMonth === month}
-                onPress={() => {
-                  setPendingYear('');
-                  onChange(`${year}-${month}`);
-                }}
+                onPress={() => onChange(`${year}-${month}`)}
               />
             );
           })}
         </View>
       ) : null}
+      {error ? <Text className="text-left text-sm text-error">{error}</Text> : null}
     </View>
   );
 }

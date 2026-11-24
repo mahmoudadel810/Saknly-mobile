@@ -20,7 +20,7 @@ import {
   toDecimal,
   toListingFields,
 } from './draft';
-import { toPhotoUpdateFields } from './formData';
+import { removedImages, toPhotoUpdateFields } from './formData';
 
 const base: ListingDraft = {
   ...EMPTY_DRAFT,
@@ -232,6 +232,41 @@ describe('editing keeps the new fields', () => {
   });
 });
 
+describe('fields in a hidden section', () => {
+  it("don't block the form once their section is gone", () => {
+    const leftover = { name: 'جامعة', distanceInKm: '150' };
+    expect(errorsOf({ ...student, universities: [leftover] })).toEqual([
+      'universities[0].distanceInKm',
+    ]);
+    // switched to rent: the universities aren't sent, so they aren't checked
+    expect(errorsOf({ ...rent, universities: [leftover] })).toEqual([]);
+    expect(errorsOf({ ...sale, paymentMethod: 'cash', minInstallment: '900000000' })).toEqual([]);
+    expect(errorsOf({ ...rent, deliveryTerms: 'x'.repeat(301), deliveryMonth: '2028' })).toEqual(
+      [],
+    );
+  });
+
+  it('asks for a month when only the year was picked', () => {
+    expect(errorsOf({ ...sale, deliveryMonth: '2028' })).toEqual(['deliveryMonth']);
+    expect(errorsOf({ ...rent, availableMonth: '2027' })).toEqual(['availableMonth']);
+    expect(errorsOf({ ...sale, deliveryMonth: '2028-03' })).toEqual([]);
+    expect(keys({ ...sale, deliveryMonth: '2028' })).not.toContain('deliveryDate');
+  });
+});
+
+describe('photos taken out on an edit', () => {
+  it('are matched by id, so a refetched listing keeps its kept photos', () => {
+    const existing = [
+      { publicId: 'a', url: 'https://x/a.jpg' },
+      { publicId: 'b', url: 'https://x/b.jpg' },
+    ];
+    // the same photos, as new objects from a refetch
+    const refetched = existing.map((image) => ({ ...image }));
+    expect(removedImages(refetched, [existing[1]])).toEqual([refetched[0]]);
+    expect(removedImages(refetched, existing)).toEqual([]);
+  });
+});
+
 describe('numbers typed in Arabic', () => {
   it('keeps one decimal point, Arabic or Latin', () => {
     expect(toDecimal('١٫٥')).toBe('1.5');
@@ -338,6 +373,8 @@ describe('counted units and money', () => {
       '24 شهرًا',
     ]);
     expect([1, 2, 5, 15].map(yearsLabel)).toEqual(['سنة واحدة', 'سنتان', '5 سنوات', '15 سنة']);
+    // the Arabic plural rules go by the last two digits
+    expect([100, 103, 111].map(monthsLabel)).toEqual(['100 شهر', '103 أشهر', '111 شهرًا']);
     expect(formatMoney(1_250_000)).toBe('1,250,000 ج.م');
     expect(monthLabel('2027-09')).toBe('سبتمبر 2027');
     await i18n.changeLanguage('en');

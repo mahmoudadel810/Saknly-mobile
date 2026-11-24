@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, useWindowDimensions, View } from 'react-native';
 
@@ -10,7 +10,7 @@ import { coverFirst } from './format';
 import { Text } from '@/components/Text';
 
 export function Gallery({ images: all }: { images: PropertyImage[] }) {
-  const images = coverFirst(all);
+  const images = useMemo(() => coverFirst(all), [all]);
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { width } = useWindowDimensions();

@@ -26,6 +26,7 @@ import {
   toDecimal,
   toDigits,
 } from './draft';
+import { removedImages } from './formData';
 import { MonthPicker, yearsFrom } from './MonthPicker';
 import { PhotoPicker } from './PhotoPicker';
 import type { LocalPhoto } from './photos';
@@ -98,7 +99,7 @@ export function ListingForm({
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
 
-  const removed = existingImages.filter((image) => !kept.includes(image));
+  const removed = removedImages(existingImages, kept);
   const hasPhotos = kept.length + photos.length > 0;
 
   const form = useFormik({
@@ -295,6 +296,7 @@ export function ListingForm({
             value={v.deliveryMonth}
             onChange={(month) => set('deliveryMonth', month)}
             years={DELIVERY_YEARS}
+            error={fieldError('deliveryMonth')}
           />
           {field('deliveryTerms', t('listing.deliveryTerms'), multiline(LIMITS.terms))}
         </Section>
@@ -309,6 +311,7 @@ export function ListingForm({
             value={v.availableMonth}
             onChange={(month) => set('availableMonth', month)}
             years={AVAILABLE_YEARS}
+            error={fieldError('availableMonth')}
           />
           <Choices>
             <Chip

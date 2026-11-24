@@ -11,6 +11,14 @@ export const toUploadFile = (photo: LocalPhoto, index: number) => ({
 });
 
 /**
+ * The listing's photos the owner took out. Matched by id, not by object: a refetch of the listing
+ * while the form is open brings new objects, and comparing those would mark every kept photo as
+ * removed (and delete them all on save).
+ */
+export const removedImages = (existing: PropertyImage[], kept: PropertyImage[]) =>
+  existing.filter((image) => !kept.some((k) => k.publicId === image.publicId));
+
+/**
  * Text fields for an edit's photos. The server keeps every existing photo when `images` is
  * absent, so removed ones also go in `imagesToDelete`; `images` sets the order of the kept ones.
  * The cover is the kept photo sent with isMain; with none flagged (`coverIsNew`), the server

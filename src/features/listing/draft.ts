@@ -147,6 +147,8 @@ export const toDecimal = (value: string) => {
 };
 
 const installments = (method: string) => method !== 'cash';
+/** A whole month, "YYYY-MM"; the picker holds just "YYYY" until a month is chosen. */
+const MONTH = /^\d{4}-\d{2}$/;
 
 const PHONE = /^0\d{9,10}$/;
 const MOBILE = /^01\d{9}$/;
@@ -240,31 +242,44 @@ export const listingSchema = yup.object({
           (v) => !v || (Number(v) >= 1 && Number(v) <= 30),
         ),
   }),
-  minInstallment: number().test(
-    'max',
-    t('listing.errors.price'),
-    (v) => !v || Number(v) <= MAX_PRICE,
-  ),
-  deliveryTerms: yup
-    .string()
-    .trim()
-    .max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
-  rulesOther: yup
-    .string()
-    .trim()
-    .max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
-  universities: yup.array(
-    yup.object({
-      name: yup
-        .string()
-        .trim()
-        .max(LIMITS.university, t('validation.maxChars', { max: LIMITS.university })),
-      distanceInKm: yup
-        .string()
-        .matches(/^\d*(\.\d+)?$/, t('listing.errors.distance'))
-        .test('max', t('listing.errors.distance'), (v) => !v || Number(v) <= 100),
-    }),
-  ),
+  // The rules below only apply while their section is on screen: a value left in a hidden
+  // section (another category, or cash) isn't sent, so it must not block the form either.
+  minInstallment: number().when(['category', 'paymentMethod'], {
+    is: (category: string, method: string) => category === 'sale' && installments(method),
+    then: (s) => s.test('max', t('listing.errors.price'), (v) => !v || Number(v) <= MAX_PRICE),
+  }),
+  deliveryMonth: yup.string().when('category', {
+    is: 'sale',
+    then: (s) => s.matches(MONTH, { message: t('listing.errors.month'), excludeEmptyString: true }),
+  }),
+  deliveryTerms: yup.string().when('category', {
+    is: 'sale',
+    then: (s) => s.trim().max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
+  }),
+  availableMonth: yup.string().when('category', {
+    is: isRental,
+    then: (s) => s.matches(MONTH, { message: t('listing.errors.month'), excludeEmptyString: true }),
+  }),
+  rulesOther: yup.string().when('category', {
+    is: isRental,
+    then: (s) => s.trim().max(LIMITS.terms, t('validation.maxChars', { max: LIMITS.terms })),
+  }),
+  universities: yup.array().when('category', {
+    is: 'student',
+    then: (s) =>
+      s.of(
+        yup.object({
+          name: yup
+            .string()
+            .trim()
+            .max(LIMITS.university, t('validation.maxChars', { max: LIMITS.university })),
+          distanceInKm: yup
+            .string()
+            .matches(/^\d*(\.\d+)?$/, t('listing.errors.distance'))
+            .test('max', t('listing.errors.distance'), (v) => !v || Number(v) <= 100),
+        }),
+      ),
+  }),
   roomType: yup.string().when('category', { is: 'student', then: (s) => s.required(required) }),
   studentsPerRoom: yup
     .string()
@@ -365,7 +380,7 @@ export const toListingFields = (draft: ListingDraft): [string, string][] => {
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value));
 
 /** "2028-03" -> "2028-03-01" (the server takes any date; the form picks a month). */
-export const monthToDate = (month: string) => (month ? `${month}-01` : '');
+export const monthToDate = (month: string) => (MONTH.test(month) ? `${month}-01` : '');
 
 /** An ISO date from the server -> "YYYY-MM". Read from the string, so no time zone can shift it. */
 export const monthOf = (iso: string | null | undefined) =>
